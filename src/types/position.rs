@@ -45,7 +45,6 @@ pub struct Move {
     pub p: Piece,
 }
 
-
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Draw {
     /// 千日手で引き分け

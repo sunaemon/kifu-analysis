@@ -6,3 +6,4 @@ authors = ["sunaemon <@sunaemon0>"]
 [dependencies]
 nickel = "*"
 nom = "^2.1"
+enum_primitive = "*"

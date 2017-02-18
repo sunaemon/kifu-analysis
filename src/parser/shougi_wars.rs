@@ -1,4 +1,4 @@
-use nom::digit;
+use nom::{IError, digit};
 use types::*;
 
 named!(digit_as_u8<&[u8], u8>,
@@ -73,8 +73,6 @@ named!(parse_step<&[u8], Step>,
 
 named!(parse_kifu<&[u8], Vec<Step> >,
        many0!(parse_step));
-
-use nom::IError;
 
 pub fn parse(s: &[u8]) -> Result<Vec<Step>, IError<u32>> {
     parse_kifu(s).to_full_result()

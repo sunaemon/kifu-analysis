@@ -2,34 +2,60 @@ use std::fmt;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum Piece {
-    /// 歩
+    // 歩
     Pawn,
-    /// 香
+    // 香
     Lance,
-    /// 桂
+    // 桂
     Knight,
-    /// 銀
+    // 銀
     Silver,
-    /// 金
+    // 金
     Gold,
-    /// 角
+    // 角
     Bishop,
-    /// 飛
+    // 飛
     Rook,
-    /// 玉
+    // 玉
     King,
-    /// と
+    // と
     PPawn,
-    /// 成香
+    // 成香
     PLance,
-    /// 成桂
+    // 成桂
     PKnight,
-    /// 成銀
+    // 成銀
     PSilver,
-    /// 馬
+    // 馬
     Horse,
-    /// 龍
+    // 龍
     Dragon,
+}
+
+impl Piece {
+    pub fn is_promotable(self) -> bool {
+        match self {
+            Piece::Pawn => true,
+            Piece::Lance => true,
+            Piece::Knight => true,
+            Piece::Silver => true,
+            Piece::Bishop => true,
+            Piece::Rook => true,
+            _ => false,
+        }
+    }
+
+    pub fn promote(self) -> Piece {
+        match self {
+            Piece::Pawn => Piece::PPawn,
+            Piece::Lance => Piece::PLance,
+            Piece::Knight => Piece::PKnight,
+            Piece::Silver => Piece::PSilver,
+            Piece::Bishop => Piece::Horse,
+            Piece::Rook => Piece::Dragon,
+            _ => self,
+        }
+    }
 }
 
 pub fn piece_to_csa(p: Piece) -> String {
@@ -58,7 +84,6 @@ impl fmt::Debug for Piece {
     }
 }
 
-
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Color {
     ///先手
@@ -66,7 +91,6 @@ pub enum Color {
     ///後手
     White = 1,
 }
-
 
 pub fn piece_to_usi(p: Piece) -> String {
     match p {
@@ -101,5 +125,6 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(piece_to_csa(Piece::Pawn), "FU");
+        assert_eq!(Piece::Bishop.promote(), Piece::Horse);
     }
 }
