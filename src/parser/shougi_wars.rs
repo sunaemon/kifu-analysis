@@ -71,6 +71,15 @@ named!(parse_step<&[u8], Step>,
            parse_move => { |m| Step::Move(m) } |
            parse_issue_of_game => { |i| Step::IssueOfGame(i) })));
 
+named!(parse_kifu<&[u8], Vec<Step> >,
+       many0!(parse_step));
+
+use nom::IError;
+
+pub fn parse(s: &[u8]) -> Result<Vec<Step>, IError<u32>> {
+    parse_kifu(s).to_full_result()
+}
+
 #[cfg(test)]
 mod tests {
     use nom::IResult;
@@ -78,6 +87,7 @@ mod tests {
     use super::parse_move;
     use super::parse_issue_of_game;
     use super::parse_step;
+    use super::parse_kifu;
     use types::*;
 
     #[test]
@@ -103,5 +113,21 @@ mod tests {
         assert_eq!(parse_step(b"GOTE_WIN_TORYO"),
                    IResult::Done(&b""[..],
                                  Step::IssueOfGame(IssueOfGame::Win(Color::White, Win::Toryo))));
+        assert_eq!(parse_kifu(b"+7776FU,L599	-3334FU,L599	GOTE_WIN_TORYO"),
+                   IResult::Done(&b""[..],
+                                 vec![Step::Move(Move {
+                                          c: Color::Black,
+                                          from: Point::new(7, 7),
+                                          to: Point::new(7, 6),
+                                          p: Piece::Pawn,
+                                      }),
+                                      Step::Move(Move {
+                                          c: Color::White,
+                                          from: Point::new(3, 3),
+                                          to: Point::new(3, 4),
+                                          p: Piece::Pawn,
+                                      }),
+                                      Step::IssueOfGame(IssueOfGame::Win(Color::White,
+                                                                         Win::Toryo))]));
     }
 }
