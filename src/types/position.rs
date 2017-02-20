@@ -316,7 +316,7 @@ impl Position {
             self.captured.consume(m.color(), m.piece()).unwrap()
         }
 
-        if let Some((c, p)) = self.board()[m.to()] {
+        if let Some((_, p)) = self.board()[m.to()] {
             self.captured.add(m.color(), p)
         }
 
