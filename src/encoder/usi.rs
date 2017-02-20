@@ -33,7 +33,7 @@ pub fn board(b: &Board) -> String {
     let mut ret = String::new();
     for i in 0..9 {
         for j in 0..9 {
-            match b[Point::new(i, j)] {
+            match b[Point::new(j, i)] {
                 Some((c, p)) => {
                     if n > 0 {
                         write!(ret, "{}", n).unwrap();
@@ -171,5 +171,21 @@ mod tests {
                    "position sfen lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1 \
                     moves 7g7f 3c3d")
 
+    }
+
+
+    #[test]
+    fn make_move_check() {
+        let mut p = Position::hirate();
+        p.make_move(&Move::new(Color::Black,
+                                  Some(Point::one_start(7, 7)),
+                                  Point::one_start(7, 6),
+                                  Piece::Pawn,
+                                  false)
+                .unwrap())
+            .unwrap();
+
+        assert_eq!(super::sfen(&p),
+                   "lnsgkgsnl/1r5b1/ppppppppp/9/9/6P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 1");
     }
 }

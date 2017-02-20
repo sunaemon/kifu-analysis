@@ -6,9 +6,18 @@ use std::ops::IndexMut;
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Color {
     ///先手
-    Black = 0,
+    Black,
     ///後手
-    White = 1,
+    White,
+}
+
+impl Color {
+    pub fn another(self) -> Color {
+        match self {
+            Color::Black => Color::White,
+            Color::White => Color::Black,
+        }
+    }
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -21,6 +30,9 @@ impl Point {
     pub fn new(x: u8, y: u8) -> Point {
         assert!(x < 9 && y < 9);
         Point { x: x, y: y }
+    }
+    pub fn one_start(x: u8, y: u8) -> Point {
+        Point::new(x - 1, y - 1)
     }
 }
 
@@ -176,13 +188,14 @@ impl Board {
 impl Index<Point> for Board {
     type Output = Option<(Color, Piece)>;
     fn index(&self, index: Point) -> &Option<(Color, Piece)> {
-        &self.data[index.x as usize][index.y as usize]
+        &self.data[index.y as usize][index.x as usize]
     }
 }
 
 impl IndexMut<Point> for Board {
     fn index_mut(&mut self, index: Point) -> &mut Option<(Color, Piece)> {
-        &mut self.data[index.x as usize][index.y as usize]
+        println!("IndexMut called [{:?}]", index);
+        &mut self.data[index.y as usize][index.x as usize]
     }
 }
 
@@ -245,7 +258,7 @@ impl<'a> IntoIterator for &'a Captured {
 pub struct Position {
     board: Board,
     captured: Captured,
-    c: Color,
+    color: Color,
 }
 
 impl Position {
@@ -253,14 +266,14 @@ impl Position {
         Position {
             board: board,
             captured: captured,
-            c: c,
+            color: c,
         }
     }
     pub fn hirate() -> Position {
         Position {
             board: Board::hirate(),
             captured: Captured::new(),
-            c: Color::Black,
+            color: Color::Black,
         }
     }
     pub fn board(&self) -> &Board {
@@ -270,21 +283,27 @@ impl Position {
         &self.captured
     }
     pub fn color(&self) -> Color {
-        self.c
+        self.color
     }
 
     /// positionが壊れない程度に正しいmoveか？
     pub fn move_valid(&self, m: &Move) -> bool {
         if m.color() != self.color() {
+            println!("color check failed");
             return false;
         }
 
         if let Some(p) = m.from() {
             if self.board()[p] != Some((m.color(), m.piece())) {
+                println!("from check failed {:?}(at {:?} is not {:?}",
+                         self.board()[p],
+                         p,
+                         (m.color(), m.piece()));
                 return false;
             }
         } else {
             if !self.captured.has(m.color(), m.piece()) {
+                println!("drop check failed");
                 return false;
             }
         }
@@ -307,7 +326,9 @@ impl Position {
         }
 
         self.board[m.to()] = Some((m.color(), m.piece()));
-        None
+
+        self.color = self.color.another();
+        Some(())
     }
 }
 
@@ -322,16 +343,4 @@ pub struct Game {
 mod tests {
     use super::*;
     use super::super::piece::Piece;
-    #[test]
-    fn it_works() {
-        let mut p = Position::hirate();
-        p.make_move(&Move::new(Color::Black,
-                               Some(Point::new(7, 7)),
-                               Point::new(7, 6),
-                               Piece::Pawn,
-                               false)
-            .unwrap());
-
-        assert_eq!(p, Position::hirate());
-    }
 }
