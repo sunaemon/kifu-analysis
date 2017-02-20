@@ -1,6 +1,7 @@
 use super::piece::Piece;
 use std::collections::BTreeMap;
 use std::ops::Index;
+use std::ops::IndexMut;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Color {
@@ -179,15 +180,76 @@ impl Index<Point> for Board {
     }
 }
 
+impl IndexMut<Point> for Board {
+    fn index_mut(&mut self, index: Point) -> &mut Option<(Color, Piece)> {
+        &mut self.data[index.x as usize][index.y as usize]
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Captured {
+    data: BTreeMap<(Color, Piece), u8>,
+}
+
+impl Captured {
+    pub fn new() -> Captured {
+        Captured { data: BTreeMap::new() }
+    }
+    pub fn how_many(&self, c: Color, p: Piece) -> u8 {
+        if let Some(n) = self.data.get(&(c, p)) {
+            *n
+        } else {
+            0
+        }
+    }
+    pub fn has(&self, c: Color, p: Piece) -> bool {
+        self.how_many(c, p) > 0
+    }
+    pub fn consume(&mut self, c: Color, p: Piece) -> Option<()> {
+        if let Some(n) = self.data.get_mut(&(c, p)) {
+            if *n > 1 {
+                *n -= 1;
+                return Some(());
+            } else {
+                None
+            }
+
+        } else {
+            None
+        }
+    }
+    pub fn add(&mut self, c: Color, p: Piece) {
+        *self.data.entry((c, p)).or_insert(0) += 1
+    }
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+}
+
+impl From<BTreeMap<(Color, Piece), u8>> for Captured {
+    fn from(data: BTreeMap<(Color, Piece), u8>) -> Self {
+        Captured { data: data }
+    }
+}
+
+impl<'a> IntoIterator for &'a Captured {
+    type Item = (&'a (Color, Piece), &'a u8);
+    type IntoIter = ::std::collections::btree_map::Iter<'a, (Color, Piece), u8>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
+}
+
 #[derive(PartialEq, Debug)]
 pub struct Position {
     board: Board,
-    captured: BTreeMap<(Color, Piece), u8>,
+    captured: Captured,
     c: Color,
 }
 
 impl Position {
-    pub fn new(board: Board, captured: BTreeMap<(Color, Piece), u8>, c: Color) -> Position {
+    pub fn new(board: Board, captured: Captured, c: Color) -> Position {
         Position {
             board: board,
             captured: captured,
@@ -197,33 +259,55 @@ impl Position {
     pub fn hirate() -> Position {
         Position {
             board: Board::hirate(),
-            captured: BTreeMap::new(),
+            captured: Captured::new(),
             c: Color::Black,
         }
     }
     pub fn board(&self) -> &Board {
         &self.board
     }
-    pub fn captured(&self) -> &BTreeMap<(Color, Piece), u8> {
+    pub fn captured(&self) -> &Captured {
         &self.captured
     }
     pub fn color(&self) -> Color {
         self.c
     }
-    pub fn make_move(&mut self, m: &Move) -> Option<()> {
+
+    /// positionが壊れない程度に正しいmoveか？
+    pub fn move_valid(&self, m: &Move) -> bool {
         if m.color() != self.color() {
+            return false;
+        }
+
+        if let Some(p) = m.from() {
+            if self.board()[p] != Some((m.color(), m.piece())) {
+                return false;
+            }
+        } else {
+            if !self.captured.has(m.color(), m.piece()) {
+                return false;
+            }
+        }
+
+        true
+    }
+    pub fn make_move(&mut self, m: &Move) -> Option<()> {
+        if !self.move_valid(m) {
             return None;
         }
-        match m.from() {
-            Some(p) => {
-                if self.board()[p] != (m.color(), m.piece()) {
-                    return None;
-                }
-                let (to_col, to_piece) = self.board()[m.to()];
-                {}
-            }
-            None => None,
+
+        if let Some(from) = m.from() {
+            self.board[from] = None
+        } else {
+            self.captured.consume(m.color(), m.piece()).unwrap()
         }
+
+        if let Some((c, p)) = self.board()[m.to()] {
+            self.captured.add(m.color(), p)
+        }
+
+        self.board[m.to()] = Some((m.color(), m.piece()));
+        None
     }
 }
 

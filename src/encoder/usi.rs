@@ -1,6 +1,5 @@
 use types::*;
 use std::fmt::Write;
-use std::collections::BTreeMap;
 
 pub fn piece(p: Piece) -> String {
     match p {
@@ -56,13 +55,12 @@ pub fn board(b: &Board) -> String {
     ret
 }
 
-pub fn captured(captured: &BTreeMap<(Color, Piece), u8>) -> String {
+pub fn captured(captured: &Captured) -> String {
     let mut ret = String::new();
     if captured.is_empty() {
         write!(ret, "-").unwrap();
     }
-    for (&t, &n) in captured {
-        let (c, p) = t;
+    for (&(c, p), &n) in captured.into_iter() {
         if n == 1 {
             write!(ret, "{}", piece_with_color(c, p)).unwrap();
         } else if n > 1 {
@@ -124,23 +122,23 @@ pub fn position(p: &Position, moves: &Vec<Move>) -> String {
 #[cfg(test)]
 mod tests {
     use types::*;
-    use std::collections::BTreeMap;
 
     #[test]
     fn it_works() {
-        let mut captured = BTreeMap::new();
+        let mut captured = Captured::new();
         assert_eq!(super::captured(&captured), "-");
 
-        captured.insert((Color::Black, Piece::Silver), 1);
-        captured.insert((Color::Black, Piece::Pawn), 2);
-        captured.insert((Color::White, Piece::Bishop), 1);
-        captured.insert((Color::White, Piece::Pawn), 3);
+        captured.add(Color::Black, Piece::Silver);
+        captured.add(Color::Black, Piece::Pawn);
+        captured.add(Color::Black, Piece::Pawn);
+        captured.add(Color::White, Piece::Bishop);
+        captured.add(Color::White, Piece::Pawn);
+        captured.add(Color::White, Piece::Pawn);
+        captured.add(Color::White, Piece::Pawn);
 
         assert_eq!(super::captured(&captured), "2PS3pb");
         assert_eq!(super::board(&Board::hirate()),
                    "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL");
-
-        captured.insert((Color::White, Piece::Pawn), 3);
 
         assert_eq!(super::enc_move(&Move::new(Color::Black,
                                               Some(Point::new(7, 7)),
@@ -157,7 +155,7 @@ mod tests {
                        .unwrap()),
                    "*7f");
 
-        assert_eq!(super::position(&Position::new(Board::hirate(), BTreeMap::new(), Color::Black),
+        assert_eq!(super::position(&Position::new(Board::hirate(), Captured::new(), Color::Black),
                                    &vec![Move::new(Color::Black,
                                                    Some(Point::new(7, 7)),
                                                    Point::new(7, 6),
