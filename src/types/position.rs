@@ -46,12 +46,17 @@ pub struct Move {
 }
 
 impl Move {
-    pub fn new(c: Color, from: Option<Point>, to: Point, p: Piece, promote: bool) -> Option<Move> {
-        if promote && !p.is_promotable() {
-            return None;
+    pub fn new(c: Color,
+               from: Option<Point>,
+               to: Point,
+               p: Piece,
+               promote: bool)
+               -> Result<Move, String> {
+        if promote && !p.is_promoted() {
+            return Err(format!("{:?} is not promoted", p));
         }
 
-        Some(Move {
+        Ok(Move {
             c: c,
             from: from,
             to: to,
@@ -114,7 +119,7 @@ pub enum IssueOfGame {
     Draw(Draw),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Board {
     data: [[Option<(Color, Piece)>; 9]; 9],
 }
@@ -194,12 +199,11 @@ impl Index<Point> for Board {
 
 impl IndexMut<Point> for Board {
     fn index_mut(&mut self, index: Point) -> &mut Option<(Color, Piece)> {
-        println!("IndexMut called [{:?}]", index);
         &mut self.data[index.y as usize][index.x as usize]
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Captured {
     data: BTreeMap<(Color, Piece), u8>,
 }
@@ -254,7 +258,7 @@ impl<'a> IntoIterator for &'a Captured {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Position {
     board: Board,
     captured: Captured,
@@ -292,12 +296,25 @@ impl Position {
             return Err("color check failed".to_string());
         }
 
+
         if let Some(p) = m.from() {
-            if self.board()[p] != Some((m.color(), m.piece())) {
-                return Err(format!("from check failed {:?}(at {:?} is not {:?}",
-                                   self.board()[p],
-                                   p,
-                                   (m.color(), m.piece())));
+            if !m.is_promote() {
+                if self.board()[p] != Some((m.color(), m.piece())) {
+                    return Err(format!("from check failed {:?}(at {:?} is not {:?}",
+                                       self.board()[p],
+                                       p,
+                                       (m.color(), m.piece())));
+                }
+            } else {
+                let demoted = try!(m.piece()
+                    .demote()
+                    .ok_or(format!("{:?} is not a promoted piece", m.piece())));
+                if self.board()[p] != Some((m.color(), demoted)) {
+                    return Err(format!("from check failed {:?}(at {:?} is not {:?}",
+                                       self.board()[p],
+                                       p,
+                                       (m.color(), m.piece())));
+                }
             }
         } else {
             if !self.captured.has(m.color(), m.piece()) {
@@ -327,11 +344,21 @@ impl Position {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Game {
-    pub pos: Position,
+    pub position: Position,
     pub moves: Vec<Move>,
     pub issue: Option<IssueOfGame>,
+}
+
+impl Game {
+    pub fn hirate() -> Game {
+        Game {
+            position: Position::hirate(),
+            moves: Vec::new(),
+            issue: None,
+        }
+    }
 }
 
 #[cfg(test)]

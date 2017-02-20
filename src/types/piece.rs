@@ -34,27 +34,8 @@ pub enum Piece {
 
 impl Piece {
     pub fn is_promotable(self) -> bool {
-        match self {
-            Piece::Pawn => true,
-            Piece::Lance => true,
-            Piece::Knight => true,
-            Piece::Silver => true,
-            Piece::Bishop => true,
-            Piece::Rook => true,
-            _ => false,
-        }
-    }
+        self.promote().is_some()
 
-    pub fn is_promoted(self) -> bool {
-        match self {
-            Piece::PPawn => true,
-            Piece::PLance => true,
-            Piece::PKnight => true,
-            Piece::PSilver => true,
-            Piece::Horse => true,
-            Piece::Dragon => true,
-            _ => false,
-        }
     }
 
     pub fn promote(self) -> Option<Piece> {
@@ -65,6 +46,26 @@ impl Piece {
             Piece::Silver => Some(Piece::PSilver),
             Piece::Bishop => Some(Piece::Horse),
             Piece::Rook => Some(Piece::Dragon),
+            _ => None,
+        }
+    }
+
+    pub fn is_demotable(self) -> bool {
+        self.demote().is_some()
+    }
+
+    pub fn is_promoted(self) -> bool {
+        self.is_demotable()
+    }
+
+    pub fn demote(self) -> Option<Piece> {
+        match self {
+            Piece::PPawn => Some(Piece::Pawn),
+            Piece::PLance => Some(Piece::Lance),
+            Piece::PKnight => Some(Piece::Knight),
+            Piece::PSilver => Some(Piece::Silver),
+            Piece::Horse => Some(Piece::Bishop),
+            Piece::Dragon => Some(Piece::Rook),
             _ => None,
         }
     }
