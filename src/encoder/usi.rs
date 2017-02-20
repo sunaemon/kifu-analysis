@@ -187,5 +187,17 @@ mod tests {
 
         assert_eq!(super::sfen(&p),
                    "lnsgkgsnl/1r5b1/ppppppppp/9/9/6P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 1");
+
+        let mut p = Position::hirate();
+        p.make_move(&Move::new(Color::Black,
+                                  Some(Point::one_start(7, 7)),
+                                  Point::one_start(7, 6),
+                                  Piece::Pawn,
+                                  false)
+                .unwrap())
+            .unwrap();
+
+        assert_eq!(super::sfen(&p),
+                   "lnsgkgsnl/1r5b1/ppppppppp/9/9/6P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 1");
     }
 }
