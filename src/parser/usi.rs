@@ -37,7 +37,7 @@ named!(piece_with_color<&[u8], (Color, Piece)>,
          promoted: tag!("+")? ~
          c_p: piece_without_promotion_with_color,
          || match c_p {
-           (c,p) => (c, if promoted.is_some() {p.promote()} else {p})
+           (c,p) => (c, if promoted.is_some() {p.promote().unwrap()} else {p})
          }));
 
 named!(point<&[u8], Point>,

@@ -24,10 +24,52 @@ impl Point {
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Move {
-    pub c: Color,
-    pub from: Option<Point>,
-    pub to: Point,
-    pub p: Piece,
+    c: Color,
+    from: Option<Point>,
+    to: Point,
+    p: Piece,
+    promote: bool,
+}
+
+impl Move {
+    pub fn new(c: Color, from: Option<Point>, to: Point, p: Piece, promote: bool) -> Option<Move> {
+        if promote && !p.is_promotable() {
+            return None;
+        }
+
+        Some(Move {
+            c: c,
+            from: from,
+            to: to,
+            p: p,
+            promote: promote,
+        })
+    }
+    pub fn color(&self) -> Color {
+        self.c
+    }
+    pub fn is_drop(&self) -> bool {
+        self.from.is_some()
+    }
+    pub fn is_promote(&self) -> bool {
+        self.promote
+    }
+    pub fn from(&self) -> Option<Point> {
+        self.from
+    }
+    pub fn to(&self) -> Point {
+        self.to
+    }
+    pub fn piece(&self) -> Piece {
+        self.p
+    }
+    pub fn piece_after_move(&self) -> Piece {
+        if self.promote {
+            self.p.promote().unwrap()
+        } else {
+            self.p
+        }
+    }
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -122,17 +164,39 @@ pub fn hirate_board() -> Board {
 
 #[derive(PartialEq, Debug)]
 pub struct Position {
-    pub board: Board,
-    pub captured: BTreeMap<(Color, Piece), u8>,
-    pub c: Color,
+    board: Board,
+    captured: BTreeMap<(Color, Piece), u8>,
+    c: Color,
 }
 
 impl Position {
+    pub fn new(board: Board, captured: BTreeMap<(Color, Piece), u8>, c: Color) -> Position {
+        Position {
+            board: board,
+            captured: captured,
+            c: c,
+        }
+    }
     pub fn hirate() -> Position {
         Position {
             board: hirate_board(),
             captured: BTreeMap::new(),
             c: Color::Black,
+        }
+    }
+    pub fn board(&self) -> &Board {
+        &self.board
+    }
+    pub fn captured(&self) -> &BTreeMap<(Color, Piece), u8> {
+        &self.captured
+    }
+    pub fn color(&self) -> Color {
+        self.c
+    }
+    pub fn make_move(&mut self, m: &Move) -> Option<()> {
+        match m.from {
+            Some(p) => Some(()),
+            None => None,
         }
     }
 }

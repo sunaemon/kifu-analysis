@@ -76,12 +76,12 @@ pub fn sfen(p: &Position) -> String {
     let mut ret = String::new();
     write!(&mut ret,
            "{} {} {} 1",
-           board(&p.board),
-           match p.c {
+           board(p.board()),
+           match p.color() {
                Color::Black => "b",
                Color::White => "w",
            },
-           captured(&p.captured))
+           captured(p.captured()))
         .unwrap();
     ret
 }
@@ -104,11 +104,11 @@ fn dan(i: u8) -> String {
 
 pub fn enc_move(m: &Move) -> String {
     let mut ret = String::new();
-    match m.from {
+    match m.from() {
         Some(p) => write!(&mut ret, "{}{}", p.x, dan(p.y)).unwrap(),
         None => write!(&mut ret, "*").unwrap(),
     }
-    write!(&mut ret, "{}{}", m.to.x, dan(m.to.y)).unwrap();
+    write!(&mut ret, "{}{}", m.to().x, dan(m.to().y)).unwrap();
     ret
 }
 
@@ -142,38 +142,34 @@ mod tests {
 
         captured.insert((Color::White, Piece::Pawn), 3);
 
-        assert_eq!(super::enc_move(&Move {
-                       c: Color::Black,
-                       from: Some(Point::new(7, 7)),
-                       to: Point::new(7, 6),
-                       p: Piece::Pawn,
-                   }),
+        assert_eq!(super::enc_move(&Move::new(Color::Black,
+                                              Some(Point::new(7, 7)),
+                                              Point::new(7, 6),
+                                              Piece::Pawn,
+                                              false)
+                       .unwrap()),
                    "7g7f");
-        assert_eq!(super::enc_move(&Move {
-                       c: Color::Black,
-                       from: None,
-                       to: Point::new(7, 6),
-                       p: Piece::Pawn,
-                   }),
+        assert_eq!(super::enc_move(&Move::new(Color::Black,
+                                              None,
+                                              Point::new(7, 6),
+                                              Piece::Pawn,
+                                              false)
+                       .unwrap()),
                    "*7f");
 
-        assert_eq!(super::position(&Position {
-                                       board: hirate_board(),
-                                       captured: BTreeMap::new(),
-                                       c: Color::Black,
-                                   },
-                                   &vec![Move {
-                                             c: Color::Black,
-                                             from: Some(Point::new(7, 7)),
-                                             to: Point::new(7, 6),
-                                             p: Piece::Pawn,
-                                         },
-                                         Move {
-                                             c: Color::White,
-                                             from: Some(Point::new(3, 3)),
-                                             to: Point::new(3, 4),
-                                             p: Piece::Pawn,
-                                         }]),
+        assert_eq!(super::position(&Position::new(hirate_board(), BTreeMap::new(), Color::Black),
+                                   &vec![Move::new(Color::Black,
+                                                   Some(Point::new(7, 7)),
+                                                   Point::new(7, 6),
+                                                   Piece::Pawn,
+                                                   false)
+                                             .unwrap(),
+                                         Move::new(Color::White,
+                                                   Some(Point::new(3, 3)),
+                                                   Point::new(3, 4),
+                                                   Piece::Pawn,
+                                                   false)
+                                             .unwrap()]),
                    "position sfen lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1 \
                     moves 7g7f 3c3d")
 

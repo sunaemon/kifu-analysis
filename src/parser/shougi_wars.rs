@@ -41,12 +41,13 @@ named!(parse_move<&[u8], Move>,
          tag!(",") ~
          tag!("L") ~
          rest_time: digit,
-         || Move {
-              c: c,
-              from: if from == Point::new(0,0) {None} else  { Some(from) },
-              to: to,
-              p: p
-         }));
+         || Move::new (
+              c,
+              if from == Point::new(0,0) {None} else  { Some(from) },
+              to,
+              p,
+              false
+         ).unwrap() ));
 
 named!(parse_issue_of_game<&[u8], IssueOfGame>,
        alt!(
@@ -101,39 +102,43 @@ mod tests {
     fn it_works() {
         assert_eq!(parse_move(b"+7776FU,L599"),
                    IResult::Done(&b""[..],
-                                 Move {
-                                     c: Color::Black,
-                                     from:Some(Point::new(7, 7)),
-                                     to: Point::new(7, 6),
-                                     p: Piece::Pawn,
-                                 }));
+                                 Move::new (
+                                     Color::Black,
+                                     Some(Point::new(7, 7)),
+                                     Point::new(7, 6),
+                                     Piece::Pawn,
+                                     false
+                                 ).unwrap()));
         assert_eq!(parse_issue_of_game(b"GOTE_WIN_TORYO"),
                    IResult::Done(&b""[..], IssueOfGame::Win(Color::White, Win::Toryo)));
         assert_eq!(parse_step(b"	+7776FU,L599	-3334FU,L599	GOTE_WIN_TORYO"),
                    IResult::Done(&b"	-3334FU,L599	GOTE_WIN_TORYO"[..],
-                                 Step::Move(Move {
-                                     c: Color::Black,
-                                     from: Some(Point::new(7, 7)),
-                                     to: Point::new(7, 6),
-                                     p: Piece::Pawn,
-                                 })));
+                                 Step::Move(Move::new (
+                                     Color::Black,
+                                     Some(Point::new(7, 7)),
+                                     Point::new(7, 6),
+                                     Piece::Pawn,
+                                     false
+                                 ).unwrap())));
         assert_eq!(parse_step(b"GOTE_WIN_TORYO"),
                    IResult::Done(&b""[..],
                                  Step::IssueOfGame(IssueOfGame::Win(Color::White, Win::Toryo))));
         assert_eq!(parse_kifu(b"+7776FU,L599	-3334FU,L599	GOTE_WIN_TORYO"),
                    IResult::Done(&b""[..],
-                                 vec![Step::Move(Move {
-                                          c: Color::Black,
-                                          from: Some(Point::new(7, 7)),
-                                          to: Point::new(7, 6),
-                                          p: Piece::Pawn,
-                                      }),
-                                      Step::Move(Move {
-                                          c: Color::White,
-                                          from: Some(Point::new(3, 3)),
-                                          to: Point::new(3, 4),
-                                          p: Piece::Pawn,
-                                      }),
+                                 vec![Step::Move(Move::new (
+                                          Color::Black,
+                                          Some(Point::new(7, 7)),
+                                          Point::new(7, 6),
+                                          Piece::Pawn,
+                                          false
+                                          ).unwrap()),
+                                      Step::Move(Move::new (
+                                          Color::White,
+                                          Some(Point::new(3, 3)),
+                                          Point::new(3, 4),
+                                          Piece::Pawn,
+                                          false
+                                      ).unwrap()),
                                       Step::IssueOfGame(IssueOfGame::Win(Color::White,
                                                                          Win::Toryo))]));
     }

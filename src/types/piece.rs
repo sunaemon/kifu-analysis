@@ -45,15 +45,27 @@ impl Piece {
         }
     }
 
-    pub fn promote(self) -> Piece {
+    pub fn is_promoted(self) -> bool {
         match self {
-            Piece::Pawn => Piece::PPawn,
-            Piece::Lance => Piece::PLance,
-            Piece::Knight => Piece::PKnight,
-            Piece::Silver => Piece::PSilver,
-            Piece::Bishop => Piece::Horse,
-            Piece::Rook => Piece::Dragon,
-            _ => self,
+            Piece::PPawn => true,
+            Piece::PLance => true,
+            Piece::PKnight => true,
+            Piece::PSilver => true,
+            Piece::Horse => true,
+            Piece::Dragon => true,
+            _ => false,
+        }
+    }
+
+    pub fn promote(self) -> Option<Piece> {
+        match self {
+            Piece::Pawn => Some(Piece::PPawn),
+            Piece::Lance => Some(Piece::PLance),
+            Piece::Knight => Some(Piece::PKnight),
+            Piece::Silver => Some(Piece::PSilver),
+            Piece::Bishop => Some(Piece::Horse),
+            Piece::Rook => Some(Piece::Dragon),
+            _ => None,
         }
     }
 }
@@ -84,6 +96,6 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(piece_to_csa(Piece::Pawn), "FU");
-        assert_eq!(Piece::Bishop.promote(), Piece::Horse);
+        assert_eq!(Piece::Bishop.promote(), Some(Piece::Horse));
     }
 }
