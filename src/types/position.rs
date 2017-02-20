@@ -287,33 +287,28 @@ impl Position {
     }
 
     /// positionが壊れない程度に正しいmoveか？
-    pub fn move_valid(&self, m: &Move) -> bool {
+    pub fn move_valid(&self, m: &Move) -> Result<(), String> {
         if m.color() != self.color() {
-            println!("color check failed");
-            return false;
+            return Err("color check failed".to_string());
         }
 
         if let Some(p) = m.from() {
             if self.board()[p] != Some((m.color(), m.piece())) {
-                println!("from check failed {:?}(at {:?} is not {:?}",
-                         self.board()[p],
-                         p,
-                         (m.color(), m.piece()));
-                return false;
+                return Err(format!("from check failed {:?}(at {:?} is not {:?}",
+                                   self.board()[p],
+                                   p,
+                                   (m.color(), m.piece())));
             }
         } else {
             if !self.captured.has(m.color(), m.piece()) {
-                println!("drop check failed");
-                return false;
+                return Err("drop check failed".to_string());
             }
         }
 
-        true
+        Ok(())
     }
-    pub fn make_move(&mut self, m: &Move) -> Option<()> {
-        if !self.move_valid(m) {
-            return None;
-        }
+    pub fn make_move(&mut self, m: &Move) -> Result<(), String> {
+        try!(self.move_valid(m));
 
         if let Some(from) = m.from() {
             self.board[from] = None
@@ -328,7 +323,7 @@ impl Position {
         self.board[m.to()] = Some((m.color(), m.piece()));
 
         self.color = self.color.another();
-        Some(())
+        Ok(())
     }
 }
 
