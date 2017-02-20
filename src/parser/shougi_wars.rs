@@ -43,7 +43,7 @@ named!(parse_move<&[u8], Move>,
          rest_time: digit,
          || Move {
               c: c,
-              from: from,
+              from: if from == Point::new(0,0) {None} else  { Some(from) },
               to: to,
               p: p
          }));
@@ -63,6 +63,14 @@ named!(parse_issue_of_game<&[u8], IssueOfGame>,
              tag!("OUTE_SENNICHI") => { |_| Win::OuteSennnichi }),
              || IssueOfGame::Win(c,w) ) |
          tag!("DRAW_SENNICHI") => { |_| IssueOfGame::Draw(Draw::Sennnichi) }));
+
+
+
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub enum Step {
+    Move(Move),
+    IssueOfGame(IssueOfGame),
+}
 
 named!(parse_step<&[u8], Step>,
        preceded!(
@@ -86,6 +94,7 @@ mod tests {
     use super::parse_issue_of_game;
     use super::parse_step;
     use super::parse_kifu;
+    use super::Step;
     use types::*;
 
     #[test]
@@ -94,7 +103,7 @@ mod tests {
                    IResult::Done(&b""[..],
                                  Move {
                                      c: Color::Black,
-                                     from: Point::new(7, 7),
+                                     from:Some(Point::new(7, 7)),
                                      to: Point::new(7, 6),
                                      p: Piece::Pawn,
                                  }));
@@ -104,7 +113,7 @@ mod tests {
                    IResult::Done(&b"	-3334FU,L599	GOTE_WIN_TORYO"[..],
                                  Step::Move(Move {
                                      c: Color::Black,
-                                     from: Point::new(7, 7),
+                                     from: Some(Point::new(7, 7)),
                                      to: Point::new(7, 6),
                                      p: Piece::Pawn,
                                  })));
@@ -115,13 +124,13 @@ mod tests {
                    IResult::Done(&b""[..],
                                  vec![Step::Move(Move {
                                           c: Color::Black,
-                                          from: Point::new(7, 7),
+                                          from: Some(Point::new(7, 7)),
                                           to: Point::new(7, 6),
                                           p: Piece::Pawn,
                                       }),
                                       Step::Move(Move {
                                           c: Color::White,
-                                          from: Point::new(3, 3),
+                                          from: Some(Point::new(3, 3)),
                                           to: Point::new(3, 4),
                                           p: Piece::Pawn,
                                       }),

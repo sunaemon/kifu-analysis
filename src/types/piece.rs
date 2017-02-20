@@ -1,34 +1,34 @@
-use std::fmt;
+//use std::fmt;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Piece {
-    // 歩
+    /// 歩
     Pawn,
-    // 香
+    /// 香
     Lance,
-    // 桂
+    /// 桂
     Knight,
-    // 銀
+    /// 銀
     Silver,
-    // 金
+    /// 金
     Gold,
-    // 角
+    /// 角
     Bishop,
-    // 飛
+    /// 飛
     Rook,
-    // 玉
+    /// 玉
     King,
-    // と
+    /// と
     PPawn,
-    // 成香
+    /// 成香
     PLance,
-    // 成桂
+    /// 成桂
     PKnight,
-    // 成銀
+    /// 成銀
     PSilver,
-    // 馬
+    /// 馬
     Horse,
-    // 龍
+    /// 龍
     Dragon,
 }
 
@@ -76,47 +76,6 @@ pub fn piece_to_csa(p: Piece) -> String {
             Piece::Dragon => "RY",
         }
         .to_string()
-}
-
-impl fmt::Debug for Piece {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", piece_to_csa(*self))
-    }
-}
-
-#[derive(PartialEq, Copy, Clone, Debug)]
-pub enum Color {
-    ///先手
-    Black = 0,
-    ///後手
-    White = 1,
-}
-
-pub fn piece_to_usi(p: Piece) -> String {
-    match p {
-            Piece::Pawn => "p",
-            Piece::Lance => "l",
-            Piece::Knight => "n",
-            Piece::Silver => "s",
-            Piece::Gold => "g",
-            Piece::Bishop => "b",
-            Piece::Rook => "r",
-            Piece::King => "k",
-            Piece::PPawn => "+p",
-            Piece::PLance => "+l",
-            Piece::PKnight => "+n",
-            Piece::PSilver => "+s",
-            Piece::Horse => "+r",
-            Piece::Dragon => "+b",
-        }
-        .to_string()
-}
-
-pub fn piece_to_usi_with_color(p: Piece, c: Color) -> String {
-    match c {
-        Color::White => piece_to_usi(p),
-        Color::Black => piece_to_usi(p).to_uppercase(),
-    }
 }
 
 #[cfg(test)]

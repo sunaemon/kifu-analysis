@@ -5,3 +5,4 @@ extern crate enum_primitive;
 
 mod types;
 mod parser;
+mod encoder;
