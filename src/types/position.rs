@@ -211,8 +211,17 @@ impl Position {
         self.c
     }
     pub fn make_move(&mut self, m: &Move) -> Option<()> {
-        match m.from {
-            Some(p) => Some(()),
+        if m.color() != self.color() {
+            return None;
+        }
+        match m.from() {
+            Some(p) => {
+                if self.board()[p] != (m.color(), m.piece()) {
+                    return None;
+                }
+                let (to_col, to_piece) = self.board()[m.to()];
+                {}
+            }
             None => None,
         }
     }
