@@ -70,13 +70,12 @@ named!(board_line_parse(&[u8]) -> Vec<Option<(Color, Piece)>>,
              acc })));
 
 type VecBoard = Vec<Vec<Option<(Color, Piece)>>>;
-type Board = [[Option<(Color, Piece)>; 9]; 9];
 
 named!(board_parse_vec(&[u8]) -> VecBoard,
        dbg!(many0!(board_line_parse)));
 
 fn vec_board_to_board(b: VecBoard) -> Option<Board> {
-    let mut ret: Board = [[None; 9]; 9];
+    let mut ret: [[Option<(Color, Piece)>; 9]; 9] = [[None; 9]; 9];
 
     if b.len() != 9 {
         return None;
@@ -91,7 +90,7 @@ fn vec_board_to_board(b: VecBoard) -> Option<Board> {
         }
     }
 
-    Some(ret)
+    Some(Board::new(ret))
 }
 
 named!(board_parse<&[u8],Option<Board> >,
@@ -136,6 +135,6 @@ mod tests {
                                       vec![None, None, None, None, None, None, None, None, None]]));
 
         assert_eq!(super::board_parse(b"lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL"),
-                   IResult::Done(&b""[..], Some(hirate_board())));
+                   IResult::Done(&b""[..], Some(Board::hirate())));
     }
 }

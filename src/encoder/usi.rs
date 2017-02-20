@@ -34,7 +34,7 @@ pub fn board(b: &Board) -> String {
     let mut ret = String::new();
     for i in 0..9 {
         for j in 0..9 {
-            match b[i][j] {
+            match b[Point::new(i, j)] {
                 Some((c, p)) => {
                     if n > 0 {
                         write!(ret, "{}", n).unwrap();
@@ -137,7 +137,7 @@ mod tests {
         captured.insert((Color::White, Piece::Pawn), 3);
 
         assert_eq!(super::captured(&captured), "2PS3pb");
-        assert_eq!(super::board(&hirate_board()),
+        assert_eq!(super::board(&Board::hirate()),
                    "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL");
 
         captured.insert((Color::White, Piece::Pawn), 3);
@@ -157,7 +157,7 @@ mod tests {
                        .unwrap()),
                    "*7f");
 
-        assert_eq!(super::position(&Position::new(hirate_board(), BTreeMap::new(), Color::Black),
+        assert_eq!(super::position(&Position::new(Board::hirate(), BTreeMap::new(), Color::Black),
                                    &vec![Move::new(Color::Black,
                                                    Some(Point::new(7, 7)),
                                                    Point::new(7, 6),

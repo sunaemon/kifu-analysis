@@ -1,5 +1,6 @@
 use super::piece::Piece;
 use std::collections::BTreeMap;
+use std::ops::Index;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Color {
@@ -100,66 +101,82 @@ pub enum IssueOfGame {
     Draw(Draw),
 }
 
-pub type Board = [[Option<(Color, Piece)>; 9]; 9];
+#[derive(PartialEq, Debug)]
+pub struct Board {
+    data: [[Option<(Color, Piece)>; 9]; 9],
+}
 
-pub fn hirate_board() -> Board {
-    [[Some((Color::White, Piece::Lance)),
-      Some((Color::White, Piece::Knight)),
-      Some((Color::White, Piece::Silver)),
-      Some((Color::White, Piece::Gold)),
-      Some((Color::White, Piece::King)),
-      Some((Color::White, Piece::Gold)),
-      Some((Color::White, Piece::Silver)),
-      Some((Color::White, Piece::Knight)),
-      Some((Color::White, Piece::Lance))],
-     [None,
-      Some((Color::White, Piece::Rook)),
-      None,
-      None,
-      None,
-      None,
-      None,
-      Some((Color::White, Piece::Bishop)),
-      None],
-     [Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn)),
-      Some((Color::White, Piece::Pawn))],
-     [None, None, None, None, None, None, None, None, None],
-     [None, None, None, None, None, None, None, None, None],
-     [None, None, None, None, None, None, None, None, None],
-     [Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn)),
-      Some((Color::Black, Piece::Pawn))],
-     [None,
-      Some((Color::Black, Piece::Bishop)),
-      None,
-      None,
-      None,
-      None,
-      None,
-      Some((Color::Black, Piece::Rook)),
-      None],
-     [Some((Color::Black, Piece::Lance)),
-      Some((Color::Black, Piece::Knight)),
-      Some((Color::Black, Piece::Silver)),
-      Some((Color::Black, Piece::Gold)),
-      Some((Color::Black, Piece::King)),
-      Some((Color::Black, Piece::Gold)),
-      Some((Color::Black, Piece::Silver)),
-      Some((Color::Black, Piece::Knight)),
-      Some((Color::Black, Piece::Lance))]]
+impl Board {
+    pub fn new(d: [[Option<(Color, Piece)>; 9]; 9]) -> Board {
+        Board { data: d }
+    }
+
+    pub fn hirate() -> Board {
+        Board::new([[Some((Color::White, Piece::Lance)),
+                     Some((Color::White, Piece::Knight)),
+                     Some((Color::White, Piece::Silver)),
+                     Some((Color::White, Piece::Gold)),
+                     Some((Color::White, Piece::King)),
+                     Some((Color::White, Piece::Gold)),
+                     Some((Color::White, Piece::Silver)),
+                     Some((Color::White, Piece::Knight)),
+                     Some((Color::White, Piece::Lance))],
+                    [None,
+                     Some((Color::White, Piece::Rook)),
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     Some((Color::White, Piece::Bishop)),
+                     None],
+                    [Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn)),
+                     Some((Color::White, Piece::Pawn))],
+                    [None, None, None, None, None, None, None, None, None],
+                    [None, None, None, None, None, None, None, None, None],
+                    [None, None, None, None, None, None, None, None, None],
+                    [Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn)),
+                     Some((Color::Black, Piece::Pawn))],
+                    [None,
+                     Some((Color::Black, Piece::Bishop)),
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     Some((Color::Black, Piece::Rook)),
+                     None],
+                    [Some((Color::Black, Piece::Lance)),
+                     Some((Color::Black, Piece::Knight)),
+                     Some((Color::Black, Piece::Silver)),
+                     Some((Color::Black, Piece::Gold)),
+                     Some((Color::Black, Piece::King)),
+                     Some((Color::Black, Piece::Gold)),
+                     Some((Color::Black, Piece::Silver)),
+                     Some((Color::Black, Piece::Knight)),
+                     Some((Color::Black, Piece::Lance))]])
+    }
+}
+
+impl Index<Point> for Board {
+    type Output = Option<(Color, Piece)>;
+    fn index(&self, index: Point) -> &Option<(Color, Piece)> {
+        &self.data[index.x as usize][index.y as usize]
+    }
 }
 
 #[derive(PartialEq, Debug)]
@@ -179,7 +196,7 @@ impl Position {
     }
     pub fn hirate() -> Position {
         Position {
-            board: hirate_board(),
+            board: Board::hirate(),
             captured: BTreeMap::new(),
             c: Color::Black,
         }
@@ -210,6 +227,18 @@ pub struct Game {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use super::super::piece::Piece;
     #[test]
-    fn it_works() {}
+    fn it_works() {
+        let mut p = Position::hirate();
+        p.make_move(&Move::new(Color::Black,
+                               Some(Point::new(7, 7)),
+                               Point::new(7, 6),
+                               Piece::Pawn,
+                               false)
+            .unwrap());
+
+        assert_eq!(p, Position::hirate());
+    }
 }
