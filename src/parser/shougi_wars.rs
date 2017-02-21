@@ -130,8 +130,8 @@ pub fn parse(s: &[u8]) -> Result<Game, String> {
     for s in try!(parse_primitive(s).or(Err("Parse Error"))) {
         match s {
             Step::Move(pm) => {
-                println!("{:?}", ::encoder::usi::sfen(&p));
-                println!("{:?}", pm);
+                //                println!("{:?}", ::encoder::usi::sfen(&p));
+                //                println!("{:?}", pm);
                 let m = pm.primive_move_to_move(&p);
                 g.moves.push(m);
                 p.make_move(&m).unwrap();

@@ -107,7 +107,7 @@ pub fn enc_move(m: &Move) -> String {
         None => write!(ret, "{}*", piece_with_color(m.color(), m.piece())).unwrap(),
     }
     write!(ret, "{}{}", m.to().x + 1, dan(m.to().y + 1)).unwrap();
-    if (m.is_promote()) {
+    if m.is_promote() {
         write!(ret, "+").unwrap()
     }
     ret
