@@ -86,7 +86,7 @@ fn vec_board_to_board(b: VecBoard) -> Option<Board> {
             return None;
         }
         for j in 0..9 {
-            ret[i][j] = b[i][j]
+            ret[i][j] = b[i][8 - j]
         }
     }
 

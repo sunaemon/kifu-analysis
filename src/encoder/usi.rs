@@ -31,9 +31,9 @@ pub fn piece_with_color(c: Color, p: Piece) -> String {
 pub fn board(b: &Board) -> String {
     let mut n = 0;
     let mut ret = String::new();
-    for i in 0..9 {
-        for j in 0..9 {
-            match b[Point::new(j, i)] {
+    for j in 1..10 {
+        for i in (1..10).rev() {
+            match b[Point::one_start(i, j)] {
                 Some((c, p)) => {
                     if n > 0 {
                         write!(ret, "{}", n).unwrap();
@@ -48,7 +48,7 @@ pub fn board(b: &Board) -> String {
             write!(ret, "{}", n).unwrap();
             n = 0;
         }
-        if i != 8 {
+        if j != 9 {
             write!(ret, "/").unwrap();
         }
     }
@@ -103,10 +103,13 @@ fn dan(i: u8) -> String {
 pub fn enc_move(m: &Move) -> String {
     let mut ret = String::new();
     match m.from() {
-        Some(p) => write!(&mut ret, "{}{}", p.x, dan(p.y)).unwrap(),
-        None => write!(&mut ret, "*").unwrap(),
+        Some(p) => write!(ret, "{}{}", p.x + 1, dan(p.y + 1)).unwrap(),
+        None => write!(ret, "{}*", piece_with_color(m.color(), m.piece())).unwrap(),
     }
-    write!(&mut ret, "{}{}", m.to().x, dan(m.to().y)).unwrap();
+    write!(ret, "{}{}", m.to().x + 1, dan(m.to().y + 1)).unwrap();
+    if (m.is_promote()) {
+        write!(ret, "+").unwrap()
+    }
     ret
 }
 
@@ -141,30 +144,30 @@ mod tests {
                    "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL");
 
         assert_eq!(super::enc_move(&Move::new(Color::Black,
-                                              Some(Point::new(7, 7)),
-                                              Point::new(7, 6),
+                                              Some(Point::one_start(7, 7)),
+                                              Point::one_start(7, 6),
                                               Piece::Pawn,
                                               false)
                        .unwrap()),
                    "7g7f");
         assert_eq!(super::enc_move(&Move::new(Color::Black,
                                               None,
-                                              Point::new(7, 6),
+                                              Point::one_start(7, 6),
                                               Piece::Pawn,
                                               false)
                        .unwrap()),
-                   "*7f");
+                   "P*7f");
 
         assert_eq!(super::position(&Position::new(Board::hirate(), Captured::new(), Color::Black),
                                    &vec![Move::new(Color::Black,
-                                                   Some(Point::new(7, 7)),
-                                                   Point::new(7, 6),
+                                                   Some(Point::one_start(7, 7)),
+                                                   Point::one_start(7, 6),
                                                    Piece::Pawn,
                                                    false)
                                              .unwrap(),
                                          Move::new(Color::White,
-                                                   Some(Point::new(3, 3)),
-                                                   Point::new(3, 4),
+                                                   Some(Point::one_start(3, 3)),
+                                                   Point::one_start(3, 4),
                                                    Piece::Pawn,
                                                    false)
                                              .unwrap()]),
@@ -172,7 +175,6 @@ mod tests {
                     moves 7g7f 3c3d")
 
     }
-
 
     #[test]
     fn make_move_check() {
@@ -186,7 +188,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(super::sfen(&p),
-                   "lnsgkgsnl/1r5b1/ppppppppp/9/9/6P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 1");
+                   "lnsgkgsnl/1r5b1/ppppppppp/9/9/2P6/PP1PPPPPP/1B5R1/LNSGKGSNL w - 1");
 
         let mut p = Position::hirate();
         let m = Move::new(Color::Black,
@@ -198,6 +200,6 @@ mod tests {
         p.make_move(&m).unwrap();
 
         assert_eq!(super::sfen(&p),
-                   "lnsgkgsnl/1r5b1/ppppppppp/9/9/6+P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 1");
+                   "lnsgkgsnl/1r5b1/ppppppppp/9/9/2+P6/PP1PPPPPP/1B5R1/LNSGKGSNL w - 1");
     }
 }

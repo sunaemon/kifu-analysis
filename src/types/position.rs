@@ -2,6 +2,7 @@ use super::piece::Piece;
 use std::collections::BTreeMap;
 use std::ops::Index;
 use std::ops::IndexMut;
+use std::fmt;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Color {
@@ -20,9 +21,11 @@ impl Color {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone)]
 pub struct Point {
+    /// 段
     pub x: u8,
+    /// 筋
     pub y: u8,
 }
 
@@ -33,6 +36,12 @@ impl Point {
     }
     pub fn one_start(x: u8, y: u8) -> Point {
         Point::new(x - 1, y - 1)
+    }
+}
+
+impl fmt::Debug for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Point{{ {}{} }}", self.x + 1, self.y + 1)
     }
 }
 
@@ -140,13 +149,13 @@ impl Board {
                      Some((Color::White, Piece::Knight)),
                      Some((Color::White, Piece::Lance))],
                     [None,
-                     Some((Color::White, Piece::Rook)),
-                     None,
-                     None,
-                     None,
-                     None,
-                     None,
                      Some((Color::White, Piece::Bishop)),
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     Some((Color::White, Piece::Rook)),
                      None],
                     [Some((Color::White, Piece::Pawn)),
                      Some((Color::White, Piece::Pawn)),
@@ -170,13 +179,13 @@ impl Board {
                      Some((Color::Black, Piece::Pawn)),
                      Some((Color::Black, Piece::Pawn))],
                     [None,
-                     Some((Color::Black, Piece::Bishop)),
-                     None,
-                     None,
-                     None,
-                     None,
-                     None,
                      Some((Color::Black, Piece::Rook)),
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     Some((Color::Black, Piece::Bishop)),
                      None],
                     [Some((Color::Black, Piece::Lance)),
                      Some((Color::Black, Piece::Knight)),
@@ -224,7 +233,7 @@ impl Captured {
     }
     pub fn consume(&mut self, c: Color, p: Piece) -> Option<()> {
         if let Some(n) = self.data.get_mut(&(c, p)) {
-            if *n > 1 {
+            if *n > 0 {
                 *n -= 1;
                 return Some(());
             } else {
@@ -300,7 +309,9 @@ impl Position {
         if let Some(p) = m.from() {
             if !m.is_promote() {
                 if self.board()[p] != Some((m.color(), m.piece())) {
-                    return Err(format!("from check failed {:?}(at {:?} is not {:?}",
+                    println!("Board: {:?}", self.board());
+                    return Err(format!("from check failed {:?}(at {:?} is not {:?}(non promote \
+                                        move)",
                                        self.board()[p],
                                        p,
                                        (m.color(), m.piece())));
@@ -310,10 +321,10 @@ impl Position {
                     .demote()
                     .ok_or(format!("{:?} is not a promoted piece", m.piece())));
                 if self.board()[p] != Some((m.color(), demoted)) {
-                    return Err(format!("from check failed {:?}(at {:?} is not {:?}",
+                    return Err(format!("from check failed {:?}(at {:?} is not {:?}(promote move)",
                                        self.board()[p],
                                        p,
-                                       (m.color(), m.piece())));
+                                       (m.color(), demoted)));
                 }
             }
         } else {
@@ -334,7 +345,7 @@ impl Position {
         }
 
         if let Some((_, p)) = self.board()[m.to()] {
-            self.captured.add(m.color(), p)
+            self.captured.add(m.color(), p.demote().unwrap_or(p))
         }
 
         self.board[m.to()] = Some((m.color(), m.piece()));
