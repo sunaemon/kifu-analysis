@@ -12,5 +12,5 @@ mod encoder;
 
 fn main() {
     let mut p = Popen::create(&["ps", "x"],
-                              PopenConfig { stdout: Redirection::Pipe, ..Default::default() });
+                              PopenConfig { stdout: Redirection::Pipe, ..Default::default() })?;
 }
