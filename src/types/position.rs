@@ -76,9 +76,11 @@ impl Move {
     pub fn color(&self) -> Color {
         self.c
     }
+    /*
     pub fn is_drop(&self) -> bool {
         self.from.is_some()
     }
+    */
     pub fn is_promote(&self) -> bool {
         self.promote
     }
@@ -91,6 +93,7 @@ impl Move {
     pub fn piece(&self) -> Piece {
         self.p
     }
+    /*
     pub fn piece_after_move(&self) -> Piece {
         if self.promote {
             self.p.promote().unwrap()
@@ -98,6 +101,7 @@ impl Move {
             self.p
         }
     }
+    */
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -108,8 +112,8 @@ pub enum Win {
     Checkmate,
     /// 相手の時間切れで勝ち
     Timeout,
-    /// 相手の接続切れで勝ち
-    Disconnect,
+    // 相手の接続切れで勝ち
+    //Disconnect,
     /// 入玉で勝ち
     EnteringKing,
     /// 相手の連続王手の千日手による反則負けで勝ち

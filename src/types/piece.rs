@@ -71,6 +71,7 @@ impl Piece {
     }
 }
 
+/*
 pub fn piece_to_csa(p: Piece) -> String {
     match p {
             Piece::Pawn => "FU",
@@ -90,13 +91,14 @@ pub fn piece_to_csa(p: Piece) -> String {
         }
         .to_string()
 }
+*/
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn it_works() {
-        assert_eq!(piece_to_csa(Piece::Pawn), "FU");
+        //        assert_eq!(piece_to_csa(Piece::Pawn), "FU");
         assert_eq!(Piece::Bishop.promote(), Some(Piece::Horse));
     }
 }

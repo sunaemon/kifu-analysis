@@ -9,10 +9,8 @@ use subprocess::*;
 mod types;
 mod parser;
 mod encoder;
-use nom::space;
 
-use std::fs::File;
-use std::io::{self, Read, Write, Result as IoResult};
+use std::io::{Read, Write};
 use std::str::from_utf8;
 use nom::newline;
 use std::env;
@@ -65,33 +63,27 @@ fn main() {
 
     let g = parser::shougi_wars::parse(buffer.as_bytes()).unwrap();
 
-    let mut p = Popen::create(&["/home/sunaemon/Gikou/bin/release"],
-                              PopenConfig {
-                                  stdin: Redirection::Pipe,
-                                  stdout: Redirection::Pipe,
-                                  stderr: Redirection::Pipe,
-                                  ..Default::default()
-                              })
+    let p = Popen::create(&["/home/sunaemon/Gikou/bin/release"],
+                          PopenConfig {
+                              stdin: Redirection::Pipe,
+                              stdout: Redirection::Pipe,
+                              stderr: Redirection::Pipe,
+                              ..Default::default()
+                          })
         .unwrap();
 
+    let mut stdin_ref = p.stdin.as_ref().unwrap();
+    let mut stdout_ref = p.stdout.as_ref().unwrap();
+    //let mut stderr_ref = p.stderr.as_ref().unwrap();
+
+    stdin_ref.write_all(b"isready\n").unwrap();
     while {
         let mut buf = [0u8; 4096];
-
-        let n = p.stdout.as_ref().unwrap().read(&mut buf).unwrap();
+        let n = stdout_ref.read(&mut buf).unwrap();
         let s = from_utf8(&buf[0..n]).unwrap();
         println!("{:?}", s);
-        !s.contains("params.bin")
+        !s.contains("readyok\n")
     } {}
-
-    p.stdin.as_ref().unwrap().write_all(b"isready\n").unwrap();
-    while {
-        let mut buf = [0u8; 4096];
-        let n = p.stdout.as_ref().unwrap().read(&mut buf).unwrap();
-        let s = from_utf8(&buf[0..n]).unwrap();
-        println!("{:?}", s);
-        !s.contains("readyok")
-    } {}
-
 
     let n = args[1].parse::<usize>().unwrap();
     println!("{}", n);
@@ -99,8 +91,8 @@ fn main() {
 
     let pos = pos_string.as_bytes();
 
-    p.stdin.as_ref().unwrap().write(pos).unwrap();
-    p.stdin.as_ref().unwrap().write_all(b"\ngo\n").unwrap();
+    stdin_ref.write(pos).unwrap();
+    stdin_ref.write_all(b"\ngo\n").unwrap();
 
     while {
         let mut buf = [0u8; 4096];
