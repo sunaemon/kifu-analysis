@@ -377,7 +377,4 @@ impl Game {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use super::super::piece::Piece;
-}
+mod tests {}

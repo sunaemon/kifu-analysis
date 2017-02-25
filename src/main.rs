@@ -12,31 +12,10 @@ mod encoder;
 
 use std::io::{Read, Write};
 use std::str::from_utf8;
-use nom::newline;
 use std::env;
+use std::collections::VecDeque;
 
-fn not_newline(c: u8) -> bool {
-    c != b'\n'
-}
-
-enum Info {
-    String(String),
-}
-
-enum Response {
-    UsiOk,
-    ReadyOk,
-    BestMove,
-    Info(Info),
-}
-
-named!(info<&[u8], Response>,
-       chain!(
-       tag!(b"info string ") ~
-       ret: take_while!(not_newline) ~
-       newline,
-       || Response::Info(Info::String(from_utf8(ret).unwrap().to_string()))
-       ));
+use nom::IResult;
 
 fn main() {
     //let mut buffer = String::new();
@@ -77,28 +56,98 @@ fn main() {
     //let mut stderr_ref = p.stderr.as_ref().unwrap();
 
     stdin_ref.write_all(b"isready\n").unwrap();
-    while {
+
+    let mut q = VecDeque::new();
+    let mut break_next = false;
+    loop {
         let mut buf = [0u8; 4096];
         let n = stdout_ref.read(&mut buf).unwrap();
         let s = from_utf8(&buf[0..n]).unwrap();
-        println!("{:?}", s);
-        !s.contains("readyok\n")
-    } {}
+
+        for i in 0..n {
+            q.push_back(buf[i]);
+        }
+
+        loop {
+            let mut count = 0;
+
+            println!("{:?}", from_utf8(q.as_slices().0).unwrap());
+            match parser::usi::response(q.as_slices().0) {
+
+                IResult::Done(rest, r) => {
+                    count = q.len() - rest.len();
+                    if let parser::usi::Response::ReadyOk = r {
+                        break_next = true;
+                    }
+                    println!("{:?}", r)
+                }
+                IResult::Incomplete(n) => {
+                    //println!("Incomplete {:?}", n);
+                    break;
+                }
+                IResult::Error(e) => {} //println!("Err {}", e),
+            }
+
+            for i in 0..count {
+                q.pop_front();
+            }
+        }
+        if break_next {
+            break;
+        }
+    }
 
     let n = args[1].parse::<usize>().unwrap();
-    println!("{}", n);
-    let pos_string = ::encoder::usi::position(&g.position, &g.moves[0..n].to_vec());
+    let pos_string = encoder::usi::position(&g.position, &g.moves[0..n].to_vec());
 
     let pos = pos_string.as_bytes();
 
     stdin_ref.write(pos).unwrap();
     stdin_ref.write_all(b"\ngo\n").unwrap();
 
-    while {
+    let mut break_next = false;
+    loop {
         let mut buf = [0u8; 4096];
-        let n = p.stdout.as_ref().unwrap().read(&mut buf).unwrap();
+        let n = stdout_ref.read(&mut buf).unwrap();
         let s = from_utf8(&buf[0..n]).unwrap();
-        println!("{:?}", s);
-        true
-    } {}
+
+        for i in 0..n {
+            q.push_back(buf[i]);
+        }
+
+        loop {
+            let mut count = 0;
+
+            println!("{:?}", from_utf8(q.as_slices().0).unwrap());
+            match parser::usi::response(q.as_slices().0) {
+
+                IResult::Done(rest, r) => {
+                    count = q.len() - rest.len();
+                    if let parser::usi::Response::Infos(infos) = r {
+                        for info in infos {
+                            if let parser::usi::Info::Depth(d) = info {
+                                println!("Depth: {}", d);
+                                if d > 20 {
+                                    break_next = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                IResult::Incomplete(n) => {
+                    //println!("Incomplete {:?}", n);
+                    break;
+                }
+                IResult::Error(e) => {} //println!("Err {}", e),
+            }
+
+            for i in 0..count {
+                q.pop_front();
+            }
+        }
+
+        if break_next {
+            break;
+        }
+    }
 }
