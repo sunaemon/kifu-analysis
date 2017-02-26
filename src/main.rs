@@ -5,6 +5,8 @@ extern crate enum_primitive;
 #[macro_use]
 extern crate log;
 extern crate subprocess;
+#[macro_use]
+extern crate json;
 
 mod types;
 mod encoder;
@@ -14,6 +16,9 @@ mod usi_engine;
 use types::*;
 
 fn main() {
+    let p = Position::hirate();
+
+
     let buffer = "+7776FU,L599	-3334FU,L599	+2726FU,L598	-8384FU,L596	+2625FU,L588	-4132KI,L593	\
                   +6978KI,L587	-2288UM,L589	+7988GI,L585	-3122GI,L588	+3938GI,L583	-2233GI,L586	\
                   +8877GI,L581	-7172GI,L585	+1716FU,L577	-1314FU,L583	+9796FU,L565	-9394FU,L580	\
