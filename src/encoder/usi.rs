@@ -1,6 +1,14 @@
 use types::*;
 use std::fmt::Write;
 
+pub fn color(c: Color) -> String {
+    match c {
+            Color::Black => "b",
+            Color::White => "w",
+        }
+        .to_string()
+}
+
 pub fn piece(p: Piece) -> String {
     match p {
             Piece::Pawn => "p",
@@ -75,10 +83,7 @@ pub fn sfen(p: &Position) -> String {
     write!(&mut ret,
            "{} {} {} 1",
            board(p.board()),
-           match p.color() {
-               Color::Black => "b",
-               Color::White => "w",
-           },
+           color(p.color()),
            captured(p.captured()))
         .unwrap();
     ret

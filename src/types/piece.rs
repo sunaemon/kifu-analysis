@@ -71,34 +71,11 @@ impl Piece {
     }
 }
 
-/*
-pub fn piece_to_csa(p: Piece) -> String {
-    match p {
-            Piece::Pawn => "FU",
-            Piece::Lance => "KY",
-            Piece::Knight => "KE",
-            Piece::Silver => "GI",
-            Piece::Gold => "KI",
-            Piece::Bishop => "KA",
-            Piece::Rook => "HI",
-            Piece::King => "OU",
-            Piece::PPawn => "TO",
-            Piece::PLance => "NY",
-            Piece::PKnight => "NK",
-            Piece::PSilver => "NG",
-            Piece::Horse => "UM",
-            Piece::Dragon => "RY",
-        }
-        .to_string()
-}
-*/
-
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn it_works() {
-        //        assert_eq!(piece_to_csa(Piece::Pawn), "FU");
         assert_eq!(Piece::Bishop.promote(), Some(Piece::Horse));
     }
 }
