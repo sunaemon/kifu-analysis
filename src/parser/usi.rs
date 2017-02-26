@@ -1,6 +1,10 @@
 use types::*;
-use nom::{space, digit};
+use nom::{self, space, digit, IResult, AsChar};
 use std::str::from_utf8;
+use std::collections::VecDeque;
+use std::io::Read;
+use std::ops::{Range, RangeFrom, RangeTo};
+use nom::IResult::*;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct PrivimiveMove {
@@ -8,6 +12,28 @@ pub struct PrivimiveMove {
     pub from: Point,
     pub to: Point,
     pub promote: bool,
+}
+
+pub fn minus_or_digit<T>(input: T) -> IResult<T, T>
+    where T: nom::Slice<Range<usize>> + nom::Slice<RangeFrom<usize>> + nom::Slice<RangeTo<usize>>,
+          T: nom::InputIter + nom::InputLength
+{
+    let input_length = input.input_len();
+    if input_length == 0 {
+        return Incomplete(nom::Needed::Unknown);
+    }
+
+    for (idx, item) in input.iter_indices() {
+        let c = item.as_char();
+        if !(c == '-' || (c >= '0' && c <= '9')) {
+            if idx == 0 {
+                return Error(error_position!(nom::ErrorKind::Digit, input));
+            } else {
+                return Done(input.slice(idx..), input.slice(0..idx));
+            }
+        }
+    }
+    Done(input.slice(input_length..), input)
 }
 
 named!(digit_as_u8<&[u8], u8>,
@@ -42,7 +68,7 @@ named!(piece_with_color<&[u8], (Color, Piece)>,
            (c,p) => (c, if promoted.is_some() {p.promote().unwrap()} else {p})
          }));
 
-named!(point<&[u8], Point>,
+named_attr!(#[allow(dead_code)], point<&[u8], Point>,
        chain!(
          x: digit_as_u8 ~
          y: alphabet_as_u8,
@@ -76,6 +102,7 @@ type VecBoard = Vec<Vec<Option<(Color, Piece)>>>;
 named!(board_parse_vec(&[u8]) -> VecBoard,
        dbg!(many0!(board_line_parse)));
 
+
 fn vec_board_to_board(b: VecBoard) -> Option<Board> {
     let mut ret: [[Option<(Color, Piece)>; 9]; 9] = [[None; 9]; 9];
 
@@ -95,7 +122,7 @@ fn vec_board_to_board(b: VecBoard) -> Option<Board> {
     Some(Board::new(ret))
 }
 
-named!(board_parse<&[u8],Option<Board> >,
+named_attr!(#[allow(dead_code)], board_parse<&[u8],Option<Board> >,
        map!(board_parse_vec,
             vec_board_to_board));
 
@@ -105,8 +132,8 @@ fn not_newline(c: u8) -> bool {
 
 #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
 pub enum Score {
-    Cp(u64),
-    Mate(u64),
+    Cp(i64),
+    Mate(i64),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
@@ -127,12 +154,15 @@ pub enum Info {
 pub enum Response {
     UsiOk,
     ReadyOk,
-    BestMove,
+    BestMove(String),
     Infos(Vec<Info>),
 }
 
-fn atoi(d: &[u8]) -> u64 {
-    from_utf8(d).unwrap().parse::<u64>().unwrap()
+fn atou(d: &[u8]) -> u64 {
+    from_utf8(d).unwrap().parse().unwrap()
+}
+fn atoi(d: &[u8]) -> i64 {
+    from_utf8(d).unwrap().parse().unwrap()
 }
 
 named!(info_internal<&[u8], Info>,
@@ -147,44 +177,44 @@ named!(info_internal<&[u8], Info>,
          chain!(
            tag!("nps ") ~
            d: digit,
-           || Info::NodesPerSecond(atoi(d))
+           || Info::NodesPerSecond(atou(d))
            ) |
          chain!(
            tag!("time ") ~
            d: digit,
-           || Info::Time(atoi(d))
+           || Info::Time(atou(d))
            ) |
          chain!(
            tag!("nodes ") ~
            d: digit,
-           || Info::Nodes(atoi(d))
+           || Info::Nodes(atou(d))
            ) |
          chain!(
            tag!("depth ") ~
            d: digit,
-           || Info::Depth(atoi(d))
+           || Info::Depth(atou(d))
            ) |
          chain!(
            tag!("score ") ~
            s: alt!(
-             chain!(tag!("cp ") ~ d: digit,  || Score::Cp(atoi(d))) |
-             chain!(tag!("mate ") ~ d: digit,  || Score::Mate(atoi(d)))),
+             chain!(tag!("cp ") ~ d: minus_or_digit,  || Score::Cp(atoi(d))) |
+             chain!(tag!("mate ") ~ d: minus_or_digit,  || Score::Mate(atoi(&d)))),
            || Info::Score(s)
            ) |
          chain!(
            tag!("hashfull ") ~
            d: digit,
-           || Info::HashFull(atoi(d))
+           || Info::HashFull(atou(d))
            ) |
          chain!(
            tag!("seldepth ") ~
            d: digit,
-           || Info::SelDepth(atoi(d))
+           || Info::SelDepth(atou(d))
            ) |
          chain!(
            tag!("multipv ") ~
            d: digit,
-           || Info::MultiPv(atoi(d))
+           || Info::MultiPv(atou(d))
            ) |
          chain!(
            tag!("string ") ~
@@ -203,10 +233,55 @@ named!(info<&[u8], Response>,
 named!(pub response<&[u8], Response>,
        preceded!(
          opt!(tag!("\n")),
-       alt!(
-       tag!(b"usiok\n") => { |_| Response::UsiOk } |
-       tag!(b"readyok\n") => { |_| Response::ReadyOk } |
-       info)));
+         alt!(
+           tag!(b"usiok\n") => { |_| Response::UsiOk } |
+           tag!(b"readyok\n") => { |_| Response::ReadyOk } |
+           chain!(tag!(b"bestmove") ~
+                  ret: take_while!(not_newline),
+                  || Response::BestMove(from_utf8(ret).unwrap().to_string()) ) |
+           info)));
+
+pub fn read_and_parse<F, T, R>(data: &mut T, mut callback: F) -> R
+    where F: FnMut(Response) -> Option<R>,
+          T: Read
+{
+    let mut q = VecDeque::new();
+    loop {
+        let mut buf = [0u8; 4096];
+        let n = data.read(&mut buf).unwrap();
+        debug!("Read {:?}", from_utf8(&buf[0..n]).unwrap());
+
+        for i in 0..n {
+            q.push_back(buf[i]);
+        }
+
+        loop {
+            let b: Vec<_> = q.iter().cloned().collect(); // This copy can be avoided by using combine.
+
+            match response(b.as_slice()) {
+                IResult::Done(rest, r) => {
+                    debug!("Done {:?}", r);
+
+                    for _ in 0..(q.len() - rest.len()) {
+                        q.pop_front();
+                    }
+                    if let Some(d) = callback(r) {
+                        debug!("rest: {:?}",
+                               from_utf8(q.iter().cloned().collect::<Vec<_>>().as_slice())
+                                   .unwrap());
+                        return d;
+                    }
+                }
+                IResult::Incomplete(n) => {
+                    debug!("Incomplete {:?}", n);
+                    break;
+                }
+                IResult::Error(e) => debug!("Err {}", e),
+            }
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -255,7 +330,8 @@ mod tests {
         assert_eq!(super::info_internal(b"depth 1 seldepth 11"),
                    IResult::Done(&b" seldepth 11"[..], Info::Depth(1)));
         assert_eq!(super::info(b"info depth 1 seldepth 11"),
-                   IResult::Done(&b""[..], Response::Infos(vec! [Info::Depth(1), Info::SelDepth(11)])));
+                   IResult::Done(&b""[..],
+                                 Response::Infos(vec![Info::Depth(1), Info::SelDepth(11)])));
 
         assert_eq!(super::info(b"info depth 13 seldepth 13 time 132 nodes 1129633 nps 8557825 hashfull 11 score cp 0 \
                                  multipv 1 pv 9d9c 5d5f 4g5f 1d1e 1f1e 1a1e 1i1e 2c2d 2e2d 3c2d 1e1a+ B*6e 5f6e\n"),

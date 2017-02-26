@@ -2,20 +2,18 @@
 extern crate nom;
 #[macro_use]
 extern crate enum_primitive;
+#[macro_use]
+extern crate log;
 
 extern crate subprocess;
-use subprocess::*;
 
 mod types;
-mod parser;
 mod encoder;
+mod parser;
+mod usi_engine;
 
-use std::io::{Read, Write};
-use std::str::from_utf8;
 use std::env;
-use std::collections::VecDeque;
-
-use nom::IResult;
+//use std::str::from_utf8;
 
 fn main() {
     //let mut buffer = String::new();
@@ -39,115 +37,10 @@ fn main() {
         .to_string();
 
     let args: Vec<String> = env::args().collect();
-
     let g = parser::shougi_wars::parse(buffer.as_bytes()).unwrap();
-
-    let p = Popen::create(&["/home/sunaemon/Gikou/bin/release"],
-                          PopenConfig {
-                              stdin: Redirection::Pipe,
-                              stdout: Redirection::Pipe,
-                              stderr: Redirection::Pipe,
-                              ..Default::default()
-                          })
-        .unwrap();
-
-    let mut stdin_ref = p.stdin.as_ref().unwrap();
-    let mut stdout_ref = p.stdout.as_ref().unwrap();
-    //let mut stderr_ref = p.stderr.as_ref().unwrap();
-
-    stdin_ref.write_all(b"isready\n").unwrap();
-
-    let mut q = VecDeque::new();
-    let mut break_next = false;
-    loop {
-        let mut buf = [0u8; 4096];
-        let n = stdout_ref.read(&mut buf).unwrap();
-        let s = from_utf8(&buf[0..n]).unwrap();
-
-        for i in 0..n {
-            q.push_back(buf[i]);
-        }
-
-        loop {
-            let mut count = 0;
-
-            println!("{:?}", from_utf8(q.as_slices().0).unwrap());
-            match parser::usi::response(q.as_slices().0) {
-
-                IResult::Done(rest, r) => {
-                    count = q.len() - rest.len();
-                    if let parser::usi::Response::ReadyOk = r {
-                        break_next = true;
-                    }
-                    println!("{:?}", r)
-                }
-                IResult::Incomplete(n) => {
-                    //println!("Incomplete {:?}", n);
-                    break;
-                }
-                IResult::Error(e) => {} //println!("Err {}", e),
-            }
-
-            for i in 0..count {
-                q.pop_front();
-            }
-        }
-        if break_next {
-            break;
-        }
-    }
-
-    let n = args[1].parse::<usize>().unwrap();
-    let pos_string = encoder::usi::position(&g.position, &g.moves[0..n].to_vec());
-
-    let pos = pos_string.as_bytes();
-
-    stdin_ref.write(pos).unwrap();
-    stdin_ref.write_all(b"\ngo\n").unwrap();
-
-    let mut break_next = false;
-    loop {
-        let mut buf = [0u8; 4096];
-        let n = stdout_ref.read(&mut buf).unwrap();
-        let s = from_utf8(&buf[0..n]).unwrap();
-
-        for i in 0..n {
-            q.push_back(buf[i]);
-        }
-
-        loop {
-            let mut count = 0;
-
-            println!("{:?}", from_utf8(q.as_slices().0).unwrap());
-            match parser::usi::response(q.as_slices().0) {
-
-                IResult::Done(rest, r) => {
-                    count = q.len() - rest.len();
-                    if let parser::usi::Response::Infos(infos) = r {
-                        for info in infos {
-                            if let parser::usi::Info::Depth(d) = info {
-                                println!("Depth: {}", d);
-                                if d > 20 {
-                                    break_next = true;
-                                }
-                            }
-                        }
-                    }
-                }
-                IResult::Incomplete(n) => {
-                    //println!("Incomplete {:?}", n);
-                    break;
-                }
-                IResult::Error(e) => {} //println!("Err {}", e),
-            }
-
-            for i in 0..count {
-                q.pop_front();
-            }
-        }
-
-        if break_next {
-            break;
-        }
+    let d = args[1].parse::<usize>().unwrap();
+    let en = usi_engine::UsiEngine::new();
+    for n in 0..g.moves.len() {
+        println!("{:?}", en.get_score(&g.position, &g.moves[0..n], d as u64));
     }
 }

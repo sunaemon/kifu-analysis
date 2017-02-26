@@ -279,6 +279,7 @@ pub struct Position {
 }
 
 impl Position {
+    #[allow(dead_code)]
     pub fn new(board: Board, captured: Captured, c: Color) -> Position {
         Position {
             board: board,

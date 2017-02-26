@@ -113,7 +113,7 @@ pub fn enc_move(m: &Move) -> String {
     ret
 }
 
-pub fn position(p: &Position, moves: &Vec<Move>) -> String {
+pub fn position(p: &Position, moves: &[Move]) -> String {
     let mut ret = String::new();
     write!(ret, "position sfen {} moves", sfen(p)).unwrap();
     for &m in moves {
