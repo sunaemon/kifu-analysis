@@ -11,7 +11,7 @@ pub struct UsiEngine {
 impl UsiEngine {
     pub fn new() -> Self {
         UsiEngine {
-            process: Popen::create(&["/home/sunaemon/Gikou/bin/release"],
+            process: Popen::create(&["sh", "-c", "cd /home/sunaemon/Gikou/bin/; release"],
                                    PopenConfig {
                                        stdin: Redirection::Pipe,
                                        stdout: Redirection::Pipe,
@@ -41,8 +41,6 @@ impl UsiEngine {
             } else if let parser::usi::Response::Infos(infos) = r {
                 for info in infos {
                     if let parser::usi::Info::Depth(d) = info {
-                        //println!("Depth: {}", d);
-
                         last_depth = d;
                     } else if let parser::usi::Info::Score(s) = info {
                         last_score = s;
