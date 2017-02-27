@@ -93,15 +93,13 @@ impl Move {
     pub fn piece(&self) -> Piece {
         self.p
     }
-    /*
-    pub fn piece_after_move(&self) -> Piece {
-        if self.promote {
-            self.p.promote().unwrap()
+    pub fn piece_before_move(&self) -> Piece {
+        if self.is_promote() {
+            self.p.demote().unwrap()
         } else {
             self.p
         }
     }
-    */
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -312,25 +310,12 @@ impl Position {
 
 
         if let Some(p) = m.from() {
-            if !m.is_promote() {
-                if self.board()[p] != Some((m.color(), m.piece())) {
-                    println!("Board: {:?}", self.board());
-                    return Err(format!("from check failed {:?}(at {:?} is not {:?}(non promote \
-                                        move)",
-                                       self.board()[p],
-                                       p,
-                                       (m.color(), m.piece())));
-                }
-            } else {
-                let demoted = try!(m.piece()
-                    .demote()
-                    .ok_or(format!("{:?} is not a promoted piece", m.piece())));
-                if self.board()[p] != Some((m.color(), demoted)) {
-                    return Err(format!("from check failed {:?}(at {:?} is not {:?}(promote move)",
-                                       self.board()[p],
-                                       p,
-                                       (m.color(), demoted)));
-                }
+            if self.board()[p] != Some((m.color(), m.piece_before_move())) {
+                println!("Board: {:?}", self.board());
+                return Err(format!("from check failed {:?}(at {:?} is not {:?}",
+                                   self.board()[p],
+                                   p,
+                                   (m.color(), m.piece_before_move())));
             }
         } else {
             if !self.captured.has(m.color(), m.piece()) {

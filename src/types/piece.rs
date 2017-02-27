@@ -1,5 +1,3 @@
-//use std::fmt;
-
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Piece {
     /// 歩
@@ -35,7 +33,6 @@ pub enum Piece {
 impl Piece {
     pub fn is_promotable(self) -> bool {
         self.promote().is_some()
-
     }
 
     pub fn promote(self) -> Option<Piece> {

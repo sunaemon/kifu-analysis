@@ -38,6 +38,25 @@ pub fn position(p: &Position) -> JsonValue {
   }
 }
 
+pub fn point(p: &Point) -> JsonValue {
+    object! {
+      "x" => p.x,
+      "y" => p.y
+    }
+}
+
+pub fn enc_move(m: &Move) -> JsonValue {
+    object! {
+        "from" => match m.from() {
+            Some(p)=> point(&p),
+            None => JsonValue::Null
+        },
+        "to" => point(&m.to()),
+        "promote" => JsonValue::Boolean(m.is_promote())
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use types::*;
