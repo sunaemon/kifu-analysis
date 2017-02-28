@@ -4,9 +4,16 @@ version = "0.1.0"
 authors = ["sunaemon <@sunaemon0>"]
 
 [dependencies]
-nickel = "*"
 nom = "^2.1"
 enum_primitive = "*"
 subprocess = "*"
 log = "*"
+env_logger = "*"
 json = "*"
+
+iron = "*"
+staticfile = "*"
+mount = "*"
+
+[dependencies.logger]
+git = "https://github.com/iron/logger.git"

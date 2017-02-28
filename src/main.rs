@@ -2,16 +2,30 @@
 extern crate nom;
 #[macro_use]
 extern crate enum_primitive;
+
 #[macro_use]
 extern crate log;
+extern crate env_logger;
+
 extern crate subprocess;
 #[macro_use]
 extern crate json;
+
+extern crate iron;
+extern crate logger;
+extern crate mount;
+extern crate staticfile;
 
 mod types;
 mod encoder;
 mod parser;
 mod usi_engine;
+
+use std::path::Path;
+use iron::prelude::*;
+use logger::Logger;
+use staticfile::Static;
+use mount::Mount;
 
 use types::*;
 
@@ -34,8 +48,22 @@ fn main() {
                   +6442UM,L371	-3242KI,L166	+0031HI,L368	-0032KE,L160	GOTE_WIN_TORYO"
         .to_string();
 
-    let args: Vec<String> = std::env::args().collect();
-    let d = args[1].parse::<usize>().unwrap();
+    env_logger::init().unwrap();
+
+    let mut mount = Mount::new();
+    mount.mount("/", Static::new(Path::new("dist")));
+
+    let mut chain = Chain::new(mount);
+    let (logger_before, logger_after) = Logger::new(None);
+    chain.link_before(logger_before);
+    chain.link_after(logger_after);
+
+    Iron::new(chain)
+        .http("0.0.0.0:3000")
+        .unwrap();
+
+    //let args: Vec<String> = std::env::args().collect();
+    let d = 10; //args[1].parse::<usize>().unwrap();
     let g = parser::shougi_wars::parse(buffer.as_bytes()).unwrap();
     let en = usi_engine::UsiEngine::new();
     let mut p = Position::hirate();
