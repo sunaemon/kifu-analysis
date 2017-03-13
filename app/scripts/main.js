@@ -45,7 +45,7 @@ $(document).ready(function(){
   $('#moves').change(function() {
     update_board(kifu[parseInt($('#moves').val())].position.board);
   });
-  var connection = new WebSocket('wss://wskifu-analysis.com');
+  var connection = new WebSocket('wss://ws.kifu-analysis.com');
   connection.onopen = function() {
     console.log('connection opened');
   };
