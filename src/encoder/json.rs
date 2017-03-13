@@ -1,5 +1,6 @@
 use json::{self, JsonValue};
 use super::super::types::*;
+use super::super::parser;
 
 pub fn board(b: &Board) -> JsonValue {
     let mut ret = Vec::new();
@@ -56,6 +57,22 @@ pub fn enc_move(m: &Move) -> JsonValue {
     }
 }
 
+pub fn score(s: &parser::usi::Score) -> JsonValue {
+    match *s {
+        parser::usi::Score::Cp(n) => {
+            object! {
+                "type" => JsonValue::String("cp".to_string()),
+                "value" => JsonValue::Number(n.into())
+            }
+        }
+        parser::usi::Score::Mate(n) => {
+            object! {
+                "type" => JsonValue::String("mate".to_string()),
+                "value" => JsonValue::Number(n.into())
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

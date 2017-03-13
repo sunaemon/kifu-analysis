@@ -76,11 +76,9 @@ impl Move {
     pub fn color(&self) -> Color {
         self.c
     }
-    /*
     pub fn is_drop(&self) -> bool {
-        self.from.is_some()
+        !self.from.is_some()
     }
-    */
     pub fn is_promote(&self) -> bool {
         self.promote
     }

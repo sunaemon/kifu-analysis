@@ -11,9 +11,12 @@ log = "*"
 env_logger = "*"
 json = "*"
 
+hyper = "*"
 iron = "*"
 staticfile = "*"
 mount = "*"
+
+ws = "*"
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"

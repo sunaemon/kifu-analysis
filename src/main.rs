@@ -11,10 +11,13 @@ extern crate subprocess;
 #[macro_use]
 extern crate json;
 
+extern crate hyper;
 extern crate iron;
 extern crate logger;
 extern crate mount;
 extern crate staticfile;
+
+extern crate ws;
 
 mod types;
 mod encoder;
@@ -27,30 +30,55 @@ use logger::Logger;
 use staticfile::Static;
 use mount::Mount;
 
+use hyper::header::ContentType;
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use types::*;
 
-fn main() {
-    let buffer = "+7776FU,L599	-3334FU,L599	+2726FU,L598	-8384FU,L596	+2625FU,L588	-4132KI,L593	\
-                  +6978KI,L587	-2288UM,L589	+7988GI,L585	-3122GI,L588	+3938GI,L583	-2233GI,L586	\
-                  +8877GI,L581	-7172GI,L585	+1716FU,L577	-1314FU,L583	+9796FU,L565	-9394FU,L580	\
-                  +4746FU,L562	-5142OU,L578	+3847GI,L561	-7283GI,L576	+3736FU,L557	-6152KI,L573	\
-                  +2937KE,L556	-8485FU,L569	+5968OU,L554	-8384GI,L567	+6879OU,L552	-9495FU,L537	\
-                  +9695FU,L550	-8495GI,L535	+0094FU,L540	-8586FU,L521	+8786FU,L538	-9586GI,L519	\
-                  +7786GI,L536	-8286HI,L517	+0087FU,L535	-8683HI,L505	+0072KA,L520	-8385HI,L477	\
-                  +9493TO,L511	-9193KY,L437	+9993NY,L508	-8193KE,L434	+7294UM,L505	-8555HI,L401	\
-                  +5756FU,L499	-5554HI,L395	+9493UM,L497	-0098FU,L377	+0055KY,L491	-5464HI,L371	\
-                  +6766FU,L485	-9899TO,L367	+3745KE,L483	-9989TO,L362	+7989OU,L482	-3344GI,L340	\
-                  +2524FU,L479	-2324FU,L336	+0065KE,L471	-4445GI,L269	+4645FU,L466	-0095KY,L250	\
-                  +0061GI,L460	-5262KI,L232	+9371UM,L456	-0085KE,L230	+7162UM,L453	-0057KA,L229	\
-                  +6253UM,L445	-4233OU,L227	+5364UM,L429	-0098GI,L226	+8988OU,L426	-9899GI,L210	\
-                  +8889OU,L421	-0077KE,L202	+7877KI,L416	-8577NK,L200	+0042GI,L406	-3323OU,L181	\
-                  +0033KI,L400	-2133KE,L177	+4233NG,L397	-2333OU,L174	+0025KE,L392	-2425FU,L169	\
-                  +6442UM,L371	-3242KI,L166	+0031HI,L368	-0032KE,L160	GOTE_WIN_TORYO"
-        .to_string();
+use iron::status::Status;
+use std::thread;
 
+
+const KIFU: &'static str =
+    "+7776FU,L600	-3334FU,L599	+2726FU,L600	-8384FU,L596	+2625FU,L599	-4132KI,L593	+6978KI,L597	\
+     -8485FU,L591	+2524FU,L596	-2324FU,L588	+2824HI,L596	-8586FU,L584	+8786FU,L595	-8286HI,L582	\
+     +2434HI,L592	-0027FU,L572	+8822UM,L586	-3122GI,L568	+3432RY,L584	-6152KI,L539	+0075KA,L531	\
+     -8689RY,L533	+7553UM,L525	-5253KI,L526	+3222RY,L500	-0086KA,L517	+5948OU,L493	-8664KA,L499	\
+     +0042GI,L425	-5161OU,L475	+4253NG,L420	-6453KA,L474	+0051KI,L413	-6151OU,L468	+0052KI,L412	\
+     SENTE_WIN_CHECKMATE";
+
+
+fn get_moves(req: &mut Request) -> IronResult<Response> {
+    let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
+    let mut p = Position::hirate();
+
+    let mut ret = Vec::new();
+    ret.push(object! {
+                   "move" => json::JsonValue::Null,
+                   "move_str" => json::JsonValue::Null,
+                   "position" => encoder::json::position(&p)
+             });
+    for m in g.moves.iter() {
+        p.make_move(m).unwrap();
+        ret.push(object! {
+                   "move" => encoder::json::enc_move(&m),
+                   "move_str" => encoder::japanese::enc_move(&m),
+                   "position" => encoder::json::position(&p)
+                 });
+    }
+
+
+    let mut resp = Response::with((Status::Ok, json::JsonValue::Array(ret).dump()));
+    resp.headers.set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
+    Ok(resp)
+}
+
+fn main() {
     env_logger::init().unwrap();
 
     let mut mount = Mount::new();
+    mount.mount("/get_moves", get_moves);
     mount.mount("/", Static::new(Path::new("dist")));
 
     let mut chain = Chain::new(mount);
@@ -58,20 +86,34 @@ fn main() {
     chain.link_before(logger_before);
     chain.link_after(logger_after);
 
-    Iron::new(chain)
-        .http("0.0.0.0:3000")
-        .unwrap();
+    thread::spawn(move || { Iron::new(chain).http("0.0.0.0:3000").unwrap(); });
 
-    //let args: Vec<String> = std::env::args().collect();
-    let d = 10; //args[1].parse::<usize>().unwrap();
-    let g = parser::shougi_wars::parse(buffer.as_bytes()).unwrap();
-    let en = usi_engine::UsiEngine::new();
-    let mut p = Position::hirate();
-    for (n, m) in g.moves.iter().enumerate() {
-        p.make_move(m).unwrap();
-        println!("{}", encoder::json::position(&p).dump());
-        println!("{:?}, {:?}",
-                 en.get_score(&g.position, &g.moves[0..n], d as u64),
-                 encoder::usi::sfen(&p));
-    }
+    ws::listen("0.0.0.0:3001", |out| {
+            thread::spawn(move || {
+              let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
+              let en = usi_engine::UsiEngine::new();
+              let mut p = Position::hirate();
+              let d = 20;
+
+              out.send(object! {
+                "n" => 0,
+                "score" => encoder::json::score(&parser::usi::Score::Cp(0))
+              }.dump()).unwrap();
+              for (n, m) in g.moves.iter().enumerate() {
+                p.make_move(m).unwrap();
+                let s = object! {
+                     "n" => n,
+                     "score" => encoder::json::score(&en.get_score(&g.position, &g.moves[0..n], d as u64))}.dump();
+
+                info!("{}", s);
+                out.send(s).unwrap();
+              }
+            });
+
+            move |msg| {
+                println!("Got message: {}", msg);
+                Ok(())
+            }
+        })
+        .unwrap()
 }
