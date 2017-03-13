@@ -11,7 +11,7 @@ pub struct UsiEngine {
 impl UsiEngine {
     pub fn new() -> Self {
         UsiEngine {
-            process: Popen::create(&["/bin/bash", "-c", "cd /home/sunaemon/Gikou/bin/; ./release"],
+            process: Popen::create(&["/bin/bash", "-c", "cd /home/ec2-user/Gikou/bin; ./release"],
                                    PopenConfig {
                                        stdin: Redirection::Pipe,
                                        stdout: Redirection::Pipe,

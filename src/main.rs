@@ -86,9 +86,9 @@ fn main() {
     chain.link_before(logger_before);
     chain.link_after(logger_after);
 
-    thread::spawn(move || { Iron::new(chain).http("0.0.0.0:3000").unwrap(); });
+    thread::spawn(move || { Iron::new(chain).http("localhost:3000").unwrap(); });
 
-    ws::listen("0.0.0.0:3001", |out| {
+    ws::listen("localhost:3001", |out| {
             thread::spawn(move || {
               let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
               let en = usi_engine::UsiEngine::new();

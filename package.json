@@ -42,5 +42,9 @@
         "single"
       ]
     }
+  },
+  "dependencies": {
+    "jpegtran-bin": "^3.2.0",
+    "node-sass": "^4.5.0"
   }
 }
