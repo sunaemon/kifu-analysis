@@ -92,15 +92,9 @@ fn main() {
             thread::spawn(move || {
               let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
               let en = usi_engine::UsiEngine::new();
-              let mut p = Position::hirate();
               let d = 20;
 
-              out.send(object! {
-                "n" => 0,
-                "score" => encoder::json::score(&parser::usi::Score::Cp(0))
-              }.dump()).unwrap();
-              for (n, m) in g.moves.iter().enumerate() {
-                p.make_move(m).unwrap();
+              for n in 0 .. (g.moves.len() + 1) {
                 let s = object! {
                      "n" => n,
                      "score" => encoder::json::score(&en.get_score(&g.position, &g.moves[0..n], d as u64))}.dump();
