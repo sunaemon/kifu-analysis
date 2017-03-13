@@ -10,7 +10,7 @@ $(document).ready(function(){
 
   let images = [[],[]];
   for(let c=0; c<2; c++) {
-    for(let p=0; p<13; p++) {
+    for(let p=0; p<14; p++) {
       let piece = new Image();
       piece.src = '/images/piece/sgl' + ('0'+cp_to_img({color: c, piece: p})).slice(-2) + '.png';
       images[c].push(piece);
