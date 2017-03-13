@@ -54,8 +54,8 @@ $(document).ready(function(){
   };
   connection.onmessage = function(e) {
     let data = JSON.parse(e.data);
-    let n = data.n + 1;
-    if (!kifu[n].position.color) {
+    let n = data.n;
+    if (kifu[n].position.color) {
       data.score.value = -data.score.value
     }
     kifu[n].score = data.score;
