@@ -18,5 +18,9 @@ mount = "*"
 
 ws = "*"
 
+diesel = { version = "0.11.0", features = ["postgres"] }
+diesel_codegen = { version = "0.11.0", features = ["postgres"] }
+dotenv = "0.8.0"
+
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
