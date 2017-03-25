@@ -37,9 +37,9 @@ pub fn minus_or_digit<T>(input: T) -> IResult<T, T>
 }
 
 named!(digit_as_u8<&[u8], u8>,
-       map!(one_of_bytes!(b"123456789"), |d:char| d.to_digit(10).unwrap() as u8));
+       map!(one_of!("123456789"), |d:char| d.to_digit(10).unwrap() as u8));
 named!(alphabet_as_u8<&[u8], u8>,
-       map!(one_of_bytes!(b"abcdefghi"), |d:char| (char::to_string(&d).as_bytes()[0] - b'a' + 1)));
+       map!(one_of!("abcdefghi"), |d:char| (char::to_string(&d).as_bytes()[0] - b'a' + 1)));
 
 named!(piece_without_promotion_with_color<&[u8], (Color, Piece)>,
        alt!(
