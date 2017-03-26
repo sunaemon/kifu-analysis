@@ -1,5 +1,5 @@
 [package]
-name = "kifu-analysis"
+name = "kifu_analysis"
 version = "0.1.0"
 authors = ["sunaemon <@sunaemon0>"]
 
