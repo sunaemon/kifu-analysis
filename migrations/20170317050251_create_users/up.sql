@@ -1,8 +1,8 @@
 CREATE TABLE users (
   id serial primary key,
-  email varchar not null,
-  hash varchar not null,
-  salt varchar not null,
+  email varchar not null unique,
+  hash bytea not null,
+  salt bytea not null,
   active boolean not null default 'f',
   balance integer not null default 0
 );

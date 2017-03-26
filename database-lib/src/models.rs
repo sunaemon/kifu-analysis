@@ -5,8 +5,8 @@ use super::schema::{users, kifu};
 pub struct User {
     pub id: i32,
     pub email: String,
-    pub hash: String,
-    pub salt: String,
+    pub hash: Vec<u8>,
+    pub salt: Vec<u8>,
     pub active: bool,
     pub balance: i32,
 }
@@ -16,7 +16,7 @@ pub struct User {
 #[belongs_to(User)]
 pub struct Kifu {
     pub id: i32,
-    pub user_id: User, //Associationがうまく動かない？
+    pub user_id: User,
     pub data: String,
 }
 
@@ -24,8 +24,8 @@ pub struct Kifu {
 #[table_name="users"]
 pub struct NewUser<'a> {
     pub email: &'a str,
-    pub hash: &'a str,
-    pub salt: &'a str,
+    pub hash: &'a [u8],
+    pub salt: &'a [u8],
     pub active: bool,
 }
 

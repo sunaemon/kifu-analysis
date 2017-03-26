@@ -287,7 +287,6 @@ pub fn read_and_parse<F, T, R>(data: &mut T, mut callback: F) -> R
 mod tests {
     use nom::IResult;
 
-    use types::*;
     use super::*;
 
     #[test]
