@@ -1,26 +1,28 @@
 #[macro_use]
 extern crate nom;
-//#[macro_use]
-//extern crate enum_primitive;
 
 #[macro_use]
 extern crate log;
+
 extern crate env_logger;
 
+extern crate dotenv;
+
 extern crate subprocess;
+
 #[macro_use]
 extern crate json;
 
+extern crate ws;
+
+// iron crates
 extern crate hyper;
 extern crate iron;
 extern crate logger;
 extern crate mount;
 extern crate staticfile;
 
-extern crate ws;
-
-extern crate dotenv;
-
+// diesel crates
 #[macro_use]
 extern crate diesel;
 #[macro_use]
@@ -33,7 +35,6 @@ mod usi_engine;
 mod schema;
 mod models;
 
-use dotenv::dotenv;
 use std::env;
 
 use std::path::Path;
@@ -47,7 +48,6 @@ use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use types::*;
 
 use iron::status::Status;
-use std::thread;
 
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
@@ -59,7 +59,6 @@ const KIFU: &'static str =
      -8689RY,L533	+7553UM,L525	-5253KI,L526	+3222RY,L500	-0086KA,L517	+5948OU,L493	-8664KA,L499	\
      +0042GI,L425	-5161OU,L475	+4253NG,L420	-6453KA,L474	+0051KI,L413	-6151OU,L468	+0052KI,L412	\
      SENTE_WIN_CHECKMATE";
-
 
 fn establish_connection() -> PgConnection {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
@@ -94,7 +93,9 @@ fn get_moves(_req: &mut Request) -> IronResult<Response> {
 }
 
 fn main() {
-    dotenv().ok();
+    use std::thread;
+
+    dotenv::dotenv().ok();
 
     env_logger::init().unwrap();
 
