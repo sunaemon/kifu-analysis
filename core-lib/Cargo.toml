@@ -1,0 +1,12 @@
+[package]
+name = "core-lib"
+version = "0.1.0"
+authors = ["sunaemon <@sunaemon0>"]
+
+[dependencies]
+nom = "^2.1"
+enum_primitive = "*"
+subprocess = "*"
+log = "*"
+env_logger = "*"
+json = "*"

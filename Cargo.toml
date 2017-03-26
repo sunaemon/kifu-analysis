@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["sunaemon <@sunaemon0>"]
 
 [dependencies]
-nom = "^2.1"
-enum_primitive = "*"
-subprocess = "*"
 log = "*"
 env_logger = "*"
 json = "*"
@@ -17,10 +14,13 @@ staticfile = "*"
 mount = "*"
 
 ws = "*"
-
-diesel = { version = "0.12.0", features = ["postgres"] }
-diesel_codegen = { version = "0.12.0", features = ["postgres"] }
 dotenv = "*"
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
+
+[dependencies.core-lib]
+path = "core-lib"
+
+[dependencies.database-lib]
+path = "database-lib"
