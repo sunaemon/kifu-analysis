@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate nom;
-#[macro_use]
-extern crate enum_primitive;
+//#[macro_use]
+//extern crate enum_primitive;
 
 #[macro_use]
 extern crate log;
@@ -19,10 +19,22 @@ extern crate staticfile;
 
 extern crate ws;
 
+extern crate dotenv;
+
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_codegen;
+
 mod types;
 mod encoder;
 mod parser;
 mod usi_engine;
+mod schema;
+mod models;
+
+use dotenv::dotenv;
+use std::env;
 
 use std::path::Path;
 use iron::prelude::*;
@@ -37,6 +49,8 @@ use types::*;
 use iron::status::Status;
 use std::thread;
 
+use diesel::prelude::*;
+use diesel::pg::PgConnection;
 
 const KIFU: &'static str =
     "+7776FU,L600	-3334FU,L599	+2726FU,L600	-8384FU,L596	+2625FU,L599	-4132KI,L593	+6978KI,L597	\
@@ -47,7 +61,12 @@ const KIFU: &'static str =
      SENTE_WIN_CHECKMATE";
 
 
-fn get_moves(req: &mut Request) -> IronResult<Response> {
+fn establish_connection() -> PgConnection {
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
+}
+
+fn get_moves(_req: &mut Request) -> IronResult<Response> {
     let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
     let mut p = Position::hirate();
 
@@ -75,6 +94,8 @@ fn get_moves(req: &mut Request) -> IronResult<Response> {
 }
 
 fn main() {
+    dotenv().ok();
+
     env_logger::init().unwrap();
 
     let mut mount = Mount::new();

@@ -1,5 +1,6 @@
 use super::super::types::*;
 
+#[allow(dead_code)]
 pub fn piece(p: Piece) -> String {
     match p {
             Piece::Pawn => "FU",
