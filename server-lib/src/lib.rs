@@ -76,16 +76,20 @@ pub fn start_servers() {
 
     let mut mount = Mount::new();
     mount.mount("/get_moves", get_moves);
-    mount.mount("/", Static::new(Path::new("dist")));
+    mount.mount("/", Static::new(Path::new("server-lib/dist")));
 
     let mut chain = Chain::new(mount);
     let (logger_before, logger_after) = Logger::new(None);
     chain.link_before(logger_before);
     chain.link_after(logger_after);
 
-    thread::spawn(move || { Iron::new(chain).http("localhost:3000").unwrap(); });
+    thread::spawn(move || {
+        Iron::new(chain)
+            .http(std::env::var("WEB_LISTEN").expect("WEB_LISTEN must be set"))
+            .unwrap();
+    });
 
-    ws::listen("localhost:3001", |out| {
+    ws::listen(std::env::var("WEBSOCKET_LISTEN").expect("WEBSOCKET_LISTEN must be set"), |out| {
             thread::spawn(move || {
               let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
               let en = usi_engine::UsiEngine::new();
