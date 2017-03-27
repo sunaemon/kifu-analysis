@@ -4,16 +4,18 @@ version = "0.1.0"
 authors = ["sunaemon <@sunaemon0>"]
 
 [dependencies]
-log = "*"
-env_logger = "*"
-json = "*"
+log = "^0.3.7"
+env_logger = "^0.4.2"
+json = "^0.11.6"
 
-hyper = "*"
-iron = "*"
-staticfile = "*"
-mount = "*"
+hyper = "^0.10.5"
+iron = "^0.5.1"
+staticfile = "^0.4.0"
+mount = "^0.3.0"
 
-ws = "*"
+ws = "^0.6.1"
+
+tera = "^0.8.1"
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
