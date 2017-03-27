@@ -33,6 +33,7 @@ impl UserRoute {
         router.get("login", login, "login");
         router.post("login", login_post, "login_post");
         router.get("logout", logout, "logout");
+        router.get("err", err_test, "err");
         UserRoute { router: router }
     }
 }
@@ -67,8 +68,7 @@ fn root(url: &iron::Url) -> iron::Url {
 
 fn signup(_req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    //resp.set_mut(Template::new("users/signup", 0)).set_mut(status::Ok);
-    resp.set_mut(Template::with(include_str!("../templates/users/signup.hbs"), 0))
+    resp.set_mut(Template::with(include_str!("../templates/users/signup.hbs"), ()))
         .set_mut(status::Ok);
     Ok(resp)
 }
@@ -95,8 +95,7 @@ fn login(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut resp = Response::new();
-    //    resp.set_mut(Template::new("users/login", 0)).set_mut(status::Ok);
-    resp.set_mut(Template::with(include_str!("../templates/users/login.hbs"), 0))
+    resp.set_mut(Template::with(include_str!("../templates/users/login.hbs"), ()))
         .set_mut(status::Ok);
     Ok(resp)
 }

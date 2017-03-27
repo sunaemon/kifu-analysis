@@ -71,9 +71,9 @@ pub fn start_servers() {
         .expect("SESSION_SECRET must be set")
         .as_bytes()
         .to_owned())));
+    chain.link_after(error::ErrorReporter);
     chain.link_after(hbse);
     chain.link_after(logger_after);
-    chain.link_after(error::ErrorReporter);
 
     thread::spawn(move || {
         Iron::new(chain)

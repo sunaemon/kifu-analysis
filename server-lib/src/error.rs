@@ -1,9 +1,6 @@
 use iron::prelude::*;
 use iron::{status, AfterMiddleware};
 
-use rustc_serialize::json::{ToJson, Json};
-use std::collections::BTreeMap;
-
 use handlebars_iron::Template;
 use std::error::Error;
 
@@ -19,7 +16,8 @@ impl AfterMiddleware for ErrorReporter {
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
         info!("error handler");
 
-        /*
+        use std::collections::BTreeMap;
+        use rustc_serialize::json::{ToJson, Json};
         let mut data: BTreeMap<String, Json> = BTreeMap::new();
 
         data.insert("description".to_string(), err.description().to_json());
@@ -29,7 +27,5 @@ impl AfterMiddleware for ErrorReporter {
             .set_mut(status::BadRequest);
 
         Ok(resp)
-        */
-        Ok(Response::with((status::BadRequest, err.description())))
     }
 }
