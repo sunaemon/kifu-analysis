@@ -45,7 +45,7 @@ pub fn start_servers() {
 
     let mut mount = Mount::new();
     mount.mount("/get_moves", kifu::get_moves);
-    mount.mount("/users", users::route);
+    mount.mount("/users", users::route());
     mount.mount("/", Static::new(Path::new("server-lib/dist")));
 
     let mut chain = Chain::new(mount);
