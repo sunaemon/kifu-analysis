@@ -14,6 +14,7 @@ iron = "^0.5.1"
 staticfile = "^0.4.0"
 mount = "^0.3.0"
 router = "^0.5.0"
+urlencoded = "^0.5.0"
 
 handlebars = "^0.25.0"
 handlebars-iron = "^0.23.0"
@@ -21,6 +22,9 @@ handlebars-iron = "^0.23.0"
 iron-sessionstorage = "^0.6.6"
 
 ws = "^0.6.1"
+
+url = "*"
+rustc-serialize = "^0.3.16"
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
