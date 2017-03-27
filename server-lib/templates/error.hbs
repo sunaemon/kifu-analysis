@@ -1,11 +1,5 @@
-<html>
-  <head>
-    <title>error</title>
-  </head>
-  <body>
-    <h1>error</h1>
-    <p>
-      {{description}}
-    </p>
-  </body>
-</html>
+{{#*inline "page"}}
+  {{description}}
+{{/inline}}
+
+{{~> layout title="error" ~}}

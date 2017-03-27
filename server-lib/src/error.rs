@@ -14,7 +14,7 @@ impl AfterMiddleware for ErrorReporter {
     }
 
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
-        info!("error handler");
+        info!("error handler: {:?}", err);
 
         use std::collections::BTreeMap;
         use rustc_serialize::json::{ToJson, Json};
@@ -23,8 +23,7 @@ impl AfterMiddleware for ErrorReporter {
         data.insert("description".to_string(), err.description().to_json());
 
         let mut resp = Response::new();
-        resp.set_mut(Template::with(include_str!("../templates/error.hbs"), data))
-            .set_mut(status::BadRequest);
+        resp.set_mut(Template::new("error", data)).set_mut(status::BadRequest);
 
         Ok(resp)
     }
