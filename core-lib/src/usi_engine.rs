@@ -3,6 +3,7 @@ use subprocess::*;
 use types::*;
 use super::parser;
 use super::encoder;
+use std::env;
 
 pub struct UsiEngine {
     process: Popen,
@@ -10,8 +11,14 @@ pub struct UsiEngine {
 
 impl UsiEngine {
     pub fn new() -> Self {
+        let mut work_dir = env::home_dir().unwrap();
+        work_dir.push("Gikou/bin");
+        let script = format!("cd {}; ./release", work_dir.to_str().unwrap());
+
+        info!("run {}", script);
+
         UsiEngine {
-            process: Popen::create(&["/bin/bash", "-c", "cd /home/ec2-user/Gikou/bin; ./release"],
+            process: Popen::create(&["/bin/bash", "-c", &script],
                                    PopenConfig {
                                        stdin: Redirection::Pipe,
                                        stdout: Redirection::Pipe,
@@ -62,5 +69,21 @@ impl Drop for UsiEngine {
     fn drop(&mut self) {
         let mut stdin_ref = self.process.stdin.as_ref().unwrap();
         stdin_ref.write_all(b"quit\n").unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use types::*;
+
+    #[test]
+    fn it_works() {
+        let en = UsiEngine::new();
+        let score = en.get_score(&Position::hirate(), &[], 10);
+        match score {
+            parser::usi::Score::Mate(_) => panic!(),
+            parser::usi::Score::Cp(p) => assert!(p > 0 && p < 200),
+        }
     }
 }
