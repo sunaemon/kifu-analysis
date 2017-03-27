@@ -56,6 +56,7 @@ pub fn start_servers() {
 
     let mut hbse = HandlebarsEngine::new();
     hbse.add(Box::new(DirectorySource::new("./server-lib/templates/", ".hbs")));
+    hbse.reload().unwrap();
 
     let mut mount = Mount::new();
     mount.mount("/users", users::UserRoute::new());

@@ -66,8 +66,7 @@ fn root(url: &iron::Url) -> iron::Url {
 
 fn signup(_req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    resp.set_mut(Template::with(include_str!("../templates/users/signup.hbs"), ()))
-        .set_mut(status::Ok);
+    resp.set_mut(Template::new("users/signup", ())).set_mut(status::Ok);
     Ok(resp)
 }
 
@@ -93,8 +92,7 @@ fn login(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut resp = Response::new();
-    resp.set_mut(Template::with(include_str!("../templates/users/login.hbs"), ()))
-        .set_mut(status::Ok);
+    resp.set_mut(Template::new("users/login", ())).set_mut(status::Ok);
     Ok(resp)
 }
 
