@@ -60,7 +60,9 @@ pub fn start_servers() {
     let mut mount = Mount::new();
     mount.mount("/users", users::UserRoute::new());
     mount.mount("/kifu", kifu::KifuRoute::new());
-    mount.mount("/", Static::new(Path::new("server-lib/dist")));
+    mount.mount("/", Static::new(Path::new("server-lib/app")));
+    mount.mount("/bower_components",
+                Static::new(Path::new("server-lib/bower_components")));
 
     let mut chain = Chain::new(mount);
     let (logger_before, logger_after) = Logger::new(None);
