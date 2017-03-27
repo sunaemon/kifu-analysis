@@ -3,7 +3,6 @@ use iron::status;
 use iron::Handler;
 use iron::modifiers::Redirect;
 
-use hyper;
 use iron;
 
 use router::Router;
@@ -33,7 +32,6 @@ impl UserRoute {
         router.get("login", login, "login");
         router.post("login", login_post, "login_post");
         router.get("logout", logout, "logout");
-        router.get("err", err_test, "err");
         UserRoute { router: router }
     }
 }

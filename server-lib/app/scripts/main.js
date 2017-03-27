@@ -35,7 +35,7 @@ $(document).ready(function(){
   }
 
   let kifu={};
-  $.get('/get_moves', function(d) {
+  $.get('/kifu/get_moves', function(d) {
     kifu = d;
     $('#moves').empty();
     kifu.forEach(function(m,n) {

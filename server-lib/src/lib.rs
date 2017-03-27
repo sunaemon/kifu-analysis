@@ -57,11 +57,9 @@ pub fn start_servers() {
     let mut hbse = HandlebarsEngine::new();
     hbse.add(Box::new(DirectorySource::new("./server-lib/templates/", ".hbs")));
 
-    let users_route = users::UserRoute::new();
-
     let mut mount = Mount::new();
-    mount.mount("/get_moves", kifu::get_moves);
-    mount.mount("/users", users_route);
+    mount.mount("/users", users::UserRoute::new());
+    mount.mount("/kifu", kifu::KifuRoute::new());
     mount.mount("/", Static::new(Path::new("server-lib/dist")));
 
     let mut chain = Chain::new(mount);

@@ -1,5 +1,8 @@
 use std::thread;
 use std::env;
+
+use router::Router;
+
 use core_lib::parser;
 use core_lib::encoder;
 use core_lib::usi_engine;
@@ -9,6 +12,7 @@ use iron::prelude::*;
 use iron::status;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
+use iron::Handler;
 
 use ws;
 use json;
@@ -46,7 +50,7 @@ pub fn start_websock_server() {
         .unwrap()
 }
 
-pub fn get_moves(_req: &mut Request) -> IronResult<Response> {
+pub fn show(_req: &mut Request) -> IronResult<Response> {
     let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
     let mut p = Position::hirate();
 
@@ -70,4 +74,23 @@ pub fn get_moves(_req: &mut Request) -> IronResult<Response> {
                                       SubLevel::Json,
                                       vec![(Attr::Charset, Value::Utf8)])));
     Ok(resp)
+}
+
+
+pub struct KifuRoute {
+    router: Router,
+}
+
+impl KifuRoute {
+    pub fn new() -> KifuRoute {
+        let mut router = Router::new();
+        router.get("/:id", show, "show");
+        KifuRoute { router: router }
+    }
+}
+
+impl Handler for KifuRoute {
+    fn handle(self: &Self, req: &mut Request) -> IronResult<Response> {
+        self.router.handle(req)
+    }
 }
