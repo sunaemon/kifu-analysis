@@ -15,7 +15,7 @@ pub mod models;
 
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
-use models::{User, NewUser};
+use models::{User, NewUser, Kifu, NewKifu};
 use rand::{Rng, OsRng};
 
 use crypto::hmac::Hmac;
@@ -25,10 +25,10 @@ use std::error::Error;
 use std::env;
 use std::fmt;
 
-use schema::users;
+use schema::{users, kifu};
 
 pub struct Database {
-    conn: PgConnection,
+    pub conn: PgConnection,
 }
 
 #[derive(Debug, Clone)]
@@ -83,7 +83,6 @@ impl Database {
 
     }
 
-
     pub fn verify_user(self: &Database, email: &str, password: &str) -> Result<(), DatabaseError> {
         let us = users::table.filter(users::email.eq(email))
             .load::<User>(&self.conn)
@@ -106,6 +105,27 @@ impl Database {
         }
 
         Ok(())
+    }
+
+    pub fn list_kifu(&self, user: User) -> Result<Vec<Kifu>, DatabaseError> {
+        let us = kifu::table.filter(kifu::user_id.eq(user.id))
+            .load::<Kifu>(&self.conn)
+            .expect("error loading kifu");
+        Ok(us)
+    }
+
+    pub fn create_kifu(&self, user: User, data: &str) -> Result<Kifu, DatabaseError> {
+        let new_kifu = NewKifu {
+            user_id: user.id,
+            data: data,
+        };
+
+        match diesel::insert(&new_kifu)
+            .into(kifu::table)
+            .get_result(&self.conn) {
+            Ok(kifu) => Ok(kifu),
+            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
+        }
     }
 }
 

@@ -1,0 +1,11 @@
+{{#*inline "page"}}
+  {{#if login}}
+    <a href="/users/logout">logout</a>
+    <a href="/kifu/">kifu</a>
+  {{else}}
+    <a href="/users/signup">signup</a>
+    <a href="/users/login">login</a>
+  {{/if}}
+{{/inline}}
+
+{{~> layout title="top" ~}}

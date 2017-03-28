@@ -1,20 +1,15 @@
-<html>
-  <head>
-    <title>login</title>
-  </head>
-  <body>
-    <h1>login</h1>
+{{#*inline "page"}}
+  <form action="/users/login", method="post">
+    <p>
+      email
+      <input type="text", name="email", id="email">
+    </p>
+    <p>
+      password
+      <input type="password", name="password", id="password">
+    </p>
+    <input type="submit" value="login">
+  </form>
+{{/inline}}
 
-    <form action="/users/login", method="post">
-      <p>
-        email
-        <input type="text", name="email", id="email">
-      </p>
-      <p>
-        password
-        <input type="password", name="password", id="password">
-      </p>
-
-      <input type="submit" value="login">
-  </body>
-</html>
+{{~> layout title="login" ~}}

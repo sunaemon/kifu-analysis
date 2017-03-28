@@ -16,7 +16,7 @@ pub struct User {
 #[belongs_to(User)]
 pub struct Kifu {
     pub id: i32,
-    pub user_id: User,
+    pub user_id: i32,
     pub data: String,
 }
 

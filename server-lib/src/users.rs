@@ -1,6 +1,5 @@
 use iron::prelude::*;
 use iron::status;
-use iron::Handler;
 use iron::modifiers::Redirect;
 
 use iron;
@@ -20,25 +19,19 @@ pub struct Login {
     email: String,
 }
 
-pub struct UserRoute {
-    router: Router,
-}
+pub struct UserRoute;
+
 
 impl UserRoute {
-    pub fn new() -> UserRoute {
-        let mut router = Router::new();
-        router.get("signup", signup, "signup");
-        router.post("signup", signup_post, "signup_post");
-        router.get("login", login, "login");
-        router.post("login", login_post, "login_post");
-        router.get("logout", logout, "logout");
-        UserRoute { router: router }
-    }
-}
+    pub fn new(router: &mut Router) -> UserRoute {
+        let prefix = "/users".to_string();
+        router.get(format!("{}/signup", prefix), signup, "signup");
+        router.post(format!("{}/signup", prefix), signup_post, "signup_post");
+        router.get(format!("{}/login", prefix), login, "login");
+        router.post(format!("{}/login", prefix), login_post, "login_post");
+        router.get(format!("{}/logout", prefix), logout, "logout");
 
-impl Handler for UserRoute {
-    fn handle(self: &Self, req: &mut Request) -> IronResult<Response> {
-        self.router.handle(req)
+        UserRoute
     }
 }
 
@@ -115,6 +108,6 @@ fn login_post(req: &mut Request) -> IronResult<Response> {
 }
 
 fn logout(req: &mut Request) -> IronResult<Response> {
-    try!(req.session().clear());
+    try!(req.session().set(Login { email: "logout".to_string() }));
     Ok(Response::with((status::Found, Redirect(root(&req.url)))))
 }

@@ -9,6 +9,6 @@ CREATE TABLE users (
 
 CREATE TABLE kifu (
   id serial primary key,
-  user_id integer references users(id),
-  data varchar
+  user_id integer references users(id) not null,
+  data varchar not null
 )

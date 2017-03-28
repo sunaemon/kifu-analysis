@@ -19,7 +19,6 @@ impl AfterMiddleware for ErrorReporter {
         use std::collections::BTreeMap;
         use rustc_serialize::json::{ToJson, Json};
         let mut data: BTreeMap<String, Json> = BTreeMap::new();
-
         data.insert("description".to_string(), err.description().to_json());
 
         let mut resp = Response::new();

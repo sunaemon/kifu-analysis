@@ -1,4 +1,5 @@
 $(document).ready(function(){
+  /*
   function cp_to_img(cp) {
     const piece_to_num = [8, 7, 6, 5, 4, 3, 2, 1, 18, 17, 16, 15, 13, 12];
     if(!cp.color) {
@@ -61,4 +62,5 @@ $(document).ready(function(){
     kifu[n].score = data.score;
     $('#moves').children('[value="' + n +'"]').text(n + ' ' + kifu[n].move_str + ' ' + data.score.type + ' ' + data.score.value)
   }
+  */
 });

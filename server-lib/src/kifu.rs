@@ -13,7 +13,9 @@ use iron::status;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
 use iron::Handler;
+use handlebars_iron::Template;
 
+//use database_lib;
 use ws;
 use json;
 
@@ -50,7 +52,7 @@ pub fn start_websock_server() {
         .unwrap()
 }
 
-pub fn show(_req: &mut Request) -> IronResult<Response> {
+pub fn get_move(_req: &mut Request) -> IronResult<Response> {
     let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
     let mut p = Position::hirate();
 
@@ -76,21 +78,43 @@ pub fn show(_req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-
-pub struct KifuRoute {
-    router: Router,
+fn show(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/show", ())).set_mut(status::Ok);
+    Ok(resp)
 }
+
+fn new(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/new", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn new_post(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+
+    resp.set_mut(Template::new("kifu/new_post", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn index(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/index", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+pub struct KifuRoute;
 
 impl KifuRoute {
-    pub fn new() -> KifuRoute {
-        let mut router = Router::new();
-        router.get("/:id", show, "show");
-        KifuRoute { router: router }
-    }
-}
-
-impl Handler for KifuRoute {
-    fn handle(self: &Self, req: &mut Request) -> IronResult<Response> {
-        self.router.handle(req)
+    pub fn new(router: &mut Router) -> KifuRoute {
+        let prefix = "/kifu";
+        router.get(format!("{}/get_move/:id", prefix),
+                   get_move,
+                   "kifu_get_move");
+        router.get(format!("{}/:id", prefix), show, "kifu_show");
+        router.get(format!("{}/new", prefix), new_post, "kifu_new");
+        router.get(format!("{}/get_move/:id", prefix), new, "kifu_new_post");
+        router.get(format!("{}/", prefix), index, "kifu_index");
+        KifuRoute
     }
 }

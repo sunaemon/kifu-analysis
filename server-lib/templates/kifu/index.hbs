@@ -1,0 +1,20 @@
+{{#*inline "page"}}
+<div class="container">
+  <table>
+    <thead>
+      <th>
+        <td>id</td>
+      </th>
+    </thead>
+    <tbody>
+  {{#each kifu}}
+      <tr>
+        <td><a href="{{this.id}}">{{this.id}}</a></td>
+      </tr>
+  {{/each}}
+    </tbody>
+  </table>
+</div>
+{{/inline}}
+
+{{~> layout title="kifu" ~}}
