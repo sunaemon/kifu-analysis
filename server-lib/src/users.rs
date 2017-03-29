@@ -53,7 +53,7 @@ impl iron_sessionstorage::Value for Login {
 
 fn login_username(req: &mut Request) -> Option<Login> {
     if let Ok(Some(l)) = req.session().get::<Login>() {
-        Some(l)
+        if l.email != "" { Some(l) } else { None }
     } else {
         None
     }
@@ -116,6 +116,6 @@ fn login_post(req: &mut Request) -> IronResult<Response> {
 }
 
 fn logout(req: &mut Request) -> IronResult<Response> {
-    try!(req.session().clear());
+    try!(req.session().set(Login { email: "".to_string() }));
     Ok(Response::with((status::Found, Redirect(root(&req.url)))))
 }
