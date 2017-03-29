@@ -116,6 +116,6 @@ fn login_post(req: &mut Request) -> IronResult<Response> {
 }
 
 fn logout(req: &mut Request) -> IronResult<Response> {
-    try!(req.session().set(Login { email: "logout".to_string() }));
+    try!(req.session().clear());
     Ok(Response::with((status::Found, Redirect(root(&req.url)))))
 }
