@@ -14,7 +14,6 @@ extern crate hyper;
 extern crate iron;
 extern crate logger;
 extern crate mount;
-#[macro_use]
 extern crate router;
 extern crate staticfile;
 

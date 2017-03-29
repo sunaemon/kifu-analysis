@@ -1,5 +1,3 @@
-#![feature(box_patterns)]
-
 // diesel crates
 #[macro_use]
 extern crate diesel;

@@ -12,7 +12,6 @@ use iron::prelude::*;
 use iron::status;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
-use iron::Handler;
 use handlebars_iron::Template;
 
 //use database_lib;

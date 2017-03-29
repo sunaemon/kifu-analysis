@@ -51,6 +51,14 @@ impl iron_sessionstorage::Value for Login {
     }
 }
 
+fn login_username(req: &mut Request) -> Option<Login> {
+    if let Ok(Some(l)) = req.session().get::<Login>() {
+        Some(l)
+    } else {
+        None
+    }
+}
+
 fn root(url: &iron::Url) -> iron::Url {
     let mut url = <iron::Url as Into<url::Url>>::into(url.clone());
     url.set_path("/");
@@ -79,7 +87,7 @@ fn signup_post(req: &mut Request) -> IronResult<Response> {
 }
 
 fn login(req: &mut Request) -> IronResult<Response> {
-    if try!(req.session().get::<Login>()).is_some() {
+    if login_username(req).is_some() {
         // Already logged in
         return Ok(Response::with((status::Found, Redirect(root(&req.url)))));
     }
