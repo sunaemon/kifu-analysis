@@ -38,7 +38,7 @@ pub fn start_websock_server() {
             let &(ref kifu_id, ref kifu_id_updated) = &*kifu_id_send;
             let mut kifu_id = kifu_id.lock().unwrap();
 
-            while (*kifu_id).is_some() {
+            while (*kifu_id).is_none() {
                 kifu_id = kifu_id_updated.wait(kifu_id).unwrap();
             }
 
@@ -83,16 +83,10 @@ pub struct KifuRoute;
 impl KifuRoute {
     pub fn new(router: &mut Router) -> KifuRoute {
         let prefix = "/kifu";
-        /*
-        router.get(format!("{}/get_move/:id", prefix),
-                   get_move,
-                   "kifu_get_move");
-                   */
         router.get(format!("{}/:id", prefix), show, "kifu_show");
         router.get(format!("{}/own/:id", prefix), own, "kifu_own");
         router.get(format!("{}/new", prefix), render_new, "kifu_render_new");
         router.get(format!("{}/", prefix), render_index, "kifu_render_index");
-        //router.get(format!("{}/get_move/:id", prefix), get_move, "kifu_new");
         router.get(format!("{}/shougiwars/history/:user", prefix),
                    render_shougiwars_history,
                    "kifu_render_shougiwars_history");
@@ -106,9 +100,15 @@ impl KifuRoute {
     }
 }
 
-fn show(_req: &mut Request) -> IronResult<Response> {
+fn show(req: &mut Request) -> IronResult<Response> {
+    let id = i32::from_str(req.extensions.get::<Router>().unwrap().find("id").unwrap()).unwrap();
+    use rustc_serialize::json::{ToJson, Object};
+    let mut data = Object::new();
+
+    data.insert("kifu".to_string(), id.to_json());
+
     let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/show", ())).set_mut(status::Ok);
+    resp.set_mut(Template::new("kifu/show", data)).set_mut(status::Ok);
     Ok(resp)
 }
 
@@ -128,20 +128,39 @@ fn render_new(_req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-fn render_index(_req: &mut Request) -> IronResult<Response> {
+fn render_index(req: &mut Request) -> IronResult<Response> {
+    use rustc_serialize::json::{ToJson, Object, Array};
+
+    let mut d = database_lib::Database::new();
+    let u = users::login_user(&mut d, req).unwrap();
+
+    let mut data = Object::new();
+    let mut kifu_data = Array::new();
+
+    for kifu in d.list_kifu(&u).unwrap() {
+        let mut k = Object::new();
+        let url = url_for!(req, "kifu_show", "id" => kifu.id.to_string());
+        k.insert("url".to_string(), url.to_string().to_json());
+        k.insert("id".to_string(), kifu.id.to_json());
+
+        kifu_data.push(k.to_json());
+    }
+
+    data.insert("kifu".to_string(), kifu_data.to_json());
+
     let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/index", ())).set_mut(status::Ok);
+    resp.set_mut(Template::new("kifu/index", data)).set_mut(status::Ok);
     Ok(resp)
 }
 
 fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
-    //let user = req.extensions.get::<Router>().unwrap().find("user").unwrap();
+    let user = req.extensions.get::<Router>().unwrap().find("user").unwrap();
 
     use rustc_serialize::json::{ToJson, Object, Array};
     let mut data = Object::new();
 
-    //match scraping::get_shougiwars_history(&user, 0) {
-    match scraping::scrape_shougiwars_history(include_bytes!("../test/history")) {
+    //match scraping::scrape_shougiwars_history(include_bytes!("../test/history")) {
+    match scraping::get_shougiwars_history(&user, 0) {
         Ok(game_names) => {
             let mut games: Array = Array::new();
             for game_name in game_names {
@@ -217,8 +236,8 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
     use rustc_serialize::json::{ToJson, Object};
     let mut data = Object::new();
 
-    //match scraping::get_shougiwars_game(game) {
-    match scraping::scrape_shougiwars_game(include_bytes!("../test/game")) {
+    match scraping::get_shougiwars_game(game) {
+        //match scraping::scrape_shougiwars_game(include_bytes!("../test/game")) {
         Ok(kifu_data) => {
             let g = parser::shougiwars::parse(kifu_data.as_bytes()).unwrap();
             let k = d.create_kifu(&json::encode(&g).unwrap(),

@@ -92,6 +92,15 @@ pub fn get_shougiwars_history(user: &str, start: u32) -> Result<Vec<String>, Box
     scrape_shougiwars_history(&data)
 }
 
+pub fn get_shougiwars_game(game: &str) -> Result<String, Box<Error>> {
+    let url = shougiwars_game_url(game)?;
+    info!("url: {}", url);
+    let data = read_https(url)?;
+    info!("data: {:?}", data);
+
+    scrape_shougiwars_game(&data)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

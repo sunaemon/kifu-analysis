@@ -22,6 +22,7 @@ pub struct Gamer {
 #[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
 #[table_name="users_kifu"]
 pub struct UserKifu {
+    pub id: i32,
     pub user_id: i32,
     pub kifu_id: i32,
 }

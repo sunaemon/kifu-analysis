@@ -1,27 +1,49 @@
 $(document).ready(function() {
     function populate_board(kifu_id) {
-        function cp_to_img(cp) {
-            const piece_to_num = [8, 7, 6, 5, 4, 3, 2, 1, 18, 17, 16, 15, 13, 12];
-            if (!cp.color) {
-                return piece_to_num[cp.piece];
-            } else {
-                return piece_to_num[cp.piece] + 30;
+
+        const piece_to_num = {
+            Pawn: 8,
+            Lance: 7,
+            Knight: 6,
+            Silver: 5,
+            Gold: 4,
+            Bishop: 3,
+            Rook: 2,
+            King: 1,
+            PPawn: 18,
+            PLance: 17,
+            PKnight: 16,
+            PSilver: 15,
+            Horse: 13,
+            Dragon: 12
+        };
+        const color_to_num = {
+            Black: 0,
+            White: 1
+        };
+        function cp_to_img(color, piece) {
+            if (color === 'Black') {
+                return piece_to_num[piece];
+            } else if (color === 'White') {
+                return piece_to_num[piece] + 30;
             }
         }
 
-        const images = [[], []];
-        for (let c = 0; c < 2; c++) {
-            for (let p = 0; p < 14; p++) {
-                const piece = new Image();
-                piece.src = `/images/piece/sgl${`0${cp_to_img({ color: c, piece: p })}`.slice(-2)}.png`;
-                images[c].push(piece);
+        const images = { White: {}, Black: {} };
+        for (const color in color_to_num) {
+            for (const piece in piece_to_num) {
+                const img = new Image();
+                img.src = `/app/images/piece/sgl${`0${cp_to_img(color, piece)}`.slice(-2)}.png`;
+                images[color][piece] = img;
             }
         }
+
         function get_image(cp) {
-            return images[cp.color][cp.piece];
+            const [color, piece] = cp;
+            return images[color][piece];
         }
         const board_img = new Image();
-        board_img.src = '/images/board.jpg';
+        board_img.src = '/app/images/board.jpg';
         function update_board(board) {
             const ctx = $('#board')[0].getContext('2d');
             ctx.drawImage(board_img, 0, 0, 600, 640);
@@ -36,15 +58,15 @@ $(document).ready(function() {
         }
 
         let kifu = {};
-        $.get('/kifu/show_moves', function(d) {
+        $.get(`/kifu/show_moves/${kifu_id}`, function(d) {
             kifu = d;
             $('#moves').empty();
             kifu.forEach(function(m, n) {
-                $('#moves').append($('<option>').val(n).text(`${n} ${m.move_str}`));
+                $('#moves').append($('<option>').val(n).text(`${n} ${m.movestr}`));
             });
         });
         $('#moves').change(function() {
-            update_board(kifu[parseInt($('#moves').val())].position.board);
+            update_board(kifu[parseInt($('#moves').val())].position.board.inner);
         });
         const connection = new WebSocket('ws://192.168.1.40:3001');
         connection.onopen = function() {
@@ -57,24 +79,26 @@ $(document).ready(function() {
         connection.onmessage = function(e) {
             const data = JSON.parse(e.data);
             const n = data.n;
-            if (kifu[n].position.color) {
-                data.score.value = -data.score.value;
+            let value = data.score.fields[0];
+            const type = data.score.variant;
+            if (n % 2) {
+                value = -value;
             }
             kifu[n].score = data.score;
-            $('#moves').children(`[value="${n}"]`).text(`${n} ${kifu[n].move_str} ${data.score.type} ${data.score.value}`);
+            $('#moves').children(`[value="${n}"]`).text(`${n} ${kifu[n].movestr} ${type} ${value}`);
         };
     }
 
     const url = window.location.href;
 
-    if (new RegExp('https?://[^/]*/kifu/?').exec(url)) {
+    if (new RegExp('https?://[^/]*/kifu/?$').test(url)) {
         $('#shougiwars_search').on('submit', event => {
             window.location.href = `/kifu/shougiwars/history/${$('#shougiwars_usename').val()}`;
             event.preventDefault();
         });
-    } else if (new RegExp('https?://[^/]*/kifu/([^/]*)/?').exec(url)) {
+    } else if (new RegExp('https?://[^/]*/kifu/([^/]*)/?$').test(url)) {
         populate_board($('#kifu_id').text());
-    } else if (new RegExp('https?://[^/]*/kifu/shougiwars/game/([^/]*)/?').exec(url)) {
+    } else if (new RegExp('https?://[^/]*/kifu/shougiwars/game/([^/]*)/?$').test(url)) {
         populate_board($('#kifu_id').text());
     }
 });

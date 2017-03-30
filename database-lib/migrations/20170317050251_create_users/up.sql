@@ -24,7 +24,8 @@ CREATE TABLE kifu (
 );
 
 CREATE TABLE users_kifu (
-  user_id integer references users(id) not null primary key,
+  id serial primary key, --Diesel only supports tables with primary keys.
+  user_id integer references users(id) not null,
   kifu_id integer references kifu(id) not null
 );
 
