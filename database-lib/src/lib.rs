@@ -13,7 +13,7 @@ pub mod models;
 
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
-use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer};
+use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer, UserKifu, NewUserKifu};
 use rand::{Rng, OsRng};
 
 use crypto::hmac::Hmac;
@@ -23,7 +23,7 @@ use std::error::Error;
 use std::env;
 use std::fmt;
 
-use schema::{users, kifu, gamers};
+use schema::{users, kifu, gamers, users_kifu};
 use std::time::SystemTime;
 
 pub struct Database {
@@ -55,10 +55,7 @@ impl Database {
         Database { conn: conn }
     }
 
-    pub fn create_user(self: &Database,
-                       email: &str,
-                       password: &str)
-                       -> Result<User, DatabaseError> {
+    pub fn create_user(&self, email: &str, password: &str) -> Result<User, DatabaseError> {
         let mut mac = Hmac::new(Sha256::new(), password.as_bytes());
         let mut rng = OsRng::new().unwrap();
         let mut salt: [u8; 32] = [0; 32];
@@ -82,18 +79,8 @@ impl Database {
 
     }
 
-    pub fn verify_user(self: &Database, email: &str, password: &str) -> Result<(), DatabaseError> {
-        let us = users::table.filter(users::email.eq(email))
-            .load::<User>(&self.conn)
-            .expect("error loading user");
-
-        if us.len() == 0 {
-            return Err(DatabaseError { message: "No such user".to_string() });
-        } else if us.len() > 1 {
-            panic!("Unique validation goes wrong!! users: {:?}", us);
-        }
-
-        let user = &us[0];
+    pub fn verify_user(&self, email: &str, password: &str) -> Result<(), DatabaseError> {
+        let user = self.get_user(email)?;
 
         let mut hash: [u8; 512] = [0; 512];
         let mut mac = Hmac::new(Sha256::new(), password.as_bytes());
@@ -106,11 +93,58 @@ impl Database {
         Ok(())
     }
 
-    pub fn list_kifu(&self, user: User) -> Result<Vec<Kifu>, DatabaseError> {
-        let us = kifu::table.filter(kifu::user_id.eq(user.id))
+    pub fn get_user(&self, email: &str) -> Result<User, DatabaseError> {
+        let us = users::table.filter(users::email.eq(email))
+            .load::<User>(&self.conn)
+            .expect("error loading user");
+
+        if us.len() == 0 {
+            return Err(DatabaseError { message: "No such user".to_string() });
+        } else if us.len() > 1 {
+            panic!("Unique validation goes wrong!! users: {:?}", us);
+        }
+
+        Ok(us[0].clone())
+    }
+
+    pub fn get_kifu(&self, id: i32) -> Result<Kifu, DatabaseError> {
+        let ks = kifu::table.filter(kifu::id.eq(id))
             .load::<Kifu>(&self.conn)
+            .expect("error loading user");
+
+        if ks.len() == 0 {
+            return Err(DatabaseError { message: "No such kifu".to_string() });
+        } else if ks.len() > 1 {
+            panic!("Unique validation goes wrong!! users: {:?}", ks);
+        }
+
+        Ok(ks[0].clone())
+    }
+
+    pub fn own_kifu(&self, user: &User, kifu: &Kifu) -> Result<(), DatabaseError> {
+        let new_user_kifu = NewUserKifu {
+            user_id: user.id,
+            kifu_id: kifu.id,
+        };
+
+        match diesel::insert(&new_user_kifu)
+            .into(users_kifu::table)
+            .get_result::<UserKifu>(&self.conn) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
+        }
+    }
+
+    pub fn list_kifu(&self, user: &User) -> Result<Vec<Kifu>, DatabaseError> {
+        let us: Vec<(Kifu, UserKifu)> = kifu::table.inner_join(users_kifu::table)
+            .filter(users_kifu::user_id.eq(user.id))
+            .load(&self.conn)
             .expect("error loading kifu");
-        Ok(us)
+        let mut ks = Vec::new();
+        for (k, _) in us {
+            ks.push(k);
+        }
+        Ok(ks)
     }
 
     pub fn create_gamer(&self, name: &str, service: &str) -> Result<Gamer, DatabaseError> {
@@ -143,19 +177,40 @@ impl Database {
         }
     }
 
+    pub fn find_kifu_from_uid(&self, original_uid: &str) -> Option<Kifu> {
+        let ks = kifu::table.filter(kifu::original_uid.eq(original_uid))
+            .load::<Kifu>(&self.conn)
+            .expect("error loading user");
+
+        if ks.len() > 1 {
+            panic!("Unique validation goes wrong!! kifu: {:?}", ks);
+        }
+
+        if ks.len() == 1 {
+            Some(ks[0].clone())
+        } else {
+            None
+        }
+    }
+
     pub fn create_kifu(&self,
-                       user: &User,
                        data: &str,
                        black: Option<&Gamer>,
                        white: Option<&Gamer>,
-                       timestamp: Option<SystemTime>)
+                       timestamp: Option<SystemTime>,
+                       original_uid: Option<&str>)
                        -> Result<Kifu, DatabaseError> {
+        if let Some(original_uid) = original_uid {
+            if let Some(kifu) = self.find_kifu_from_uid(original_uid) {
+                return Ok(kifu);
+            }
+        }
         let new_kifu = NewKifu {
-            user_id: user.id,
             data: data,
             white_id: white.map(move |g| g.id),
             black_id: black.map(move |g| g.id),
             timestamp: timestamp,
+            original_uid: original_uid,
         };
 
         match diesel::insert(&new_kifu)

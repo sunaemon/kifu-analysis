@@ -1,21 +1,14 @@
 {{#*inline "page"}}
-<div class="container">
-  <div class="device-xs visible-xs">xs</div>
-  <div class="device-sm visible-sm">sm</div>
-  <div class="device-md visible-md">md</div>
-  <div class="device-lg visible-lg">lg</div>
+<div class="row">
+  <div class="col-lg-10 col-md-6">
+    <canvas id="board" width="600" height="640" style="width:100%">
+      Your brower is not supported.
+    </canvas>
+  </div>
 
-  <div class="row">
-    <div class="col-lg-10 col-md-6">
-      <canvas id="board" width="600" height="640" style="width:100%">
-        Your brower is not supported.
-      </canvas>
-    </div>
-
-    <div class="col-lg-1">
-      <select id="moves" size="10">
-      </select>
-    </div>
+  <div class="col-lg-1">
+    <select id="moves" size="10">
+    </select>
   </div>
 </div>
 {{/inline}}

@@ -93,8 +93,8 @@ pub fn start_servers() {
     kifu::KifuRoute::new(&mut route);
 
     let mut mount = Mount::new();
-    mount.mount("/", Static::new(Path::new("server-lib/app")));
     mount.mount("/", route);
+    mount.mount("/app", Static::new(Path::new("server-lib/app")));
     mount.mount("/bower_components",
                 Static::new(Path::new("server-lib/bower_components")));
 
@@ -106,11 +106,11 @@ pub fn start_servers() {
     chain.link_after(hbse);
     chain.link_after(logger_after);
 
-    thread::spawn(move || {
-        Iron::new(chain)
-            .http(web_listen)
-            .unwrap();
-    });
+    //    thread::spawn(move || {
+    Iron::new(chain)
+        .http(web_listen)
+        .unwrap();
+    //   });
 
-    kifu::start_websock_server();
+    //  kifu::start_websock_server();
 }

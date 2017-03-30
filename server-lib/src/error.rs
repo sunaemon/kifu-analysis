@@ -7,18 +7,11 @@ use std::error::Error;
 pub struct ErrorReporter;
 
 impl AfterMiddleware for ErrorReporter {
-    fn after(&self, _: &mut Request, res: Response) -> IronResult<Response> {
-        info!("after handler");
-
-        Ok(res)
-    }
-
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
         info!("error handler: {:?}", err);
 
-        use std::collections::BTreeMap;
-        use rustc_serialize::json::{ToJson, Json};
-        let mut data: BTreeMap<String, Json> = BTreeMap::new();
+        use rustc_serialize::json::{ToJson, Object};
+        let mut data = Object::new();
         data.insert("description".to_string(), err.description().to_json());
 
         let mut resp = Response::new();

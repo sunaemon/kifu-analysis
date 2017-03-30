@@ -75,7 +75,6 @@ impl Drop for UsiEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use types::*;
 
     #[test]
     fn it_works() {

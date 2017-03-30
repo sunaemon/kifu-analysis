@@ -3,8 +3,7 @@ use std::collections::BTreeMap;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::fmt;
-
-#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Color {
     ///先手
     Black,
@@ -21,7 +20,7 @@ impl Color {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, RustcDecodable, RustcEncodable)]
 pub struct Point {
     /// 段
     pub x: u8,
@@ -45,7 +44,7 @@ impl fmt::Debug for Point {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub struct Move {
     c: Color,
     from: Option<Point>,
@@ -100,7 +99,7 @@ impl Move {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub enum Win {
     /// 相手の投了で勝ち
     Toryo,
@@ -116,26 +115,26 @@ pub enum Win {
     OuteSennnichi,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub enum Draw {
     /// 千日手で引き分け
     Sennnichi,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub enum IssueOfGame {
     Win(Color, Win),
     Draw(Draw),
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Board {
-    data: [[Option<(Color, Piece)>; 9]; 9],
+    inner: [[Option<(Color, Piece)>; 9]; 9],
 }
 
 impl Board {
     pub fn new(d: [[Option<(Color, Piece)>; 9]; 9]) -> Board {
-        Board { data: d }
+        Board { inner: d }
     }
 
     pub fn hirate() -> Board {
@@ -202,72 +201,61 @@ impl Board {
 impl Index<Point> for Board {
     type Output = Option<(Color, Piece)>;
     fn index(&self, index: Point) -> &Option<(Color, Piece)> {
-        &self.data[index.y as usize][index.x as usize]
+        &self.inner[index.y as usize][index.x as usize]
     }
 }
 
 impl IndexMut<Point> for Board {
     fn index_mut(&mut self, index: Point) -> &mut Option<(Color, Piece)> {
-        &mut self.data[index.y as usize][index.x as usize]
+        &mut self.inner[index.y as usize][index.x as usize]
     }
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Captured {
-    data: BTreeMap<(Color, Piece), u8>,
+    inner: BTreeMap<Color, BTreeMap<Piece, u8>>,
 }
 
 impl Captured {
     pub fn new() -> Captured {
-        Captured { data: BTreeMap::new() }
+        Captured { inner: BTreeMap::new() }
+    }
+    pub fn to_inner(&self) -> &BTreeMap<Color, BTreeMap<Piece, u8>> {
+        &self.inner
     }
     pub fn how_many(&self, c: Color, p: Piece) -> u8 {
-        if let Some(n) = self.data.get(&(c, p)) {
-            *n
-        } else {
-            0
+        if let Some(cc) = self.inner.get(&c) {
+            if let Some(n) = cc.get(&p) {
+                return *n;
+            }
         }
+
+        0
     }
     pub fn has(&self, c: Color, p: Piece) -> bool {
         self.how_many(c, p) > 0
     }
     pub fn consume(&mut self, c: Color, p: Piece) -> Option<()> {
-        if let Some(n) = self.data.get_mut(&(c, p)) {
-            if *n > 0 {
-                *n -= 1;
-                return Some(());
-            } else {
-                None
+        if let Some(cc) = self.inner.get_mut(&c) {
+            if let Some(n) = cc.get_mut(&p) {
+                if *n > 0 {
+                    *n -= 1;
+                    return Some(());
+                }
             }
-
-        } else {
-            None
         }
+
+        None
     }
     pub fn add(&mut self, c: Color, p: Piece) {
-        *self.data.entry((c, p)).or_insert(0) += 1
+        *self.inner.entry(c).or_insert(BTreeMap::new()).entry(p).or_insert(0) += 1
     }
     pub fn is_empty(&self) -> bool {
-        self.data.is_empty()
+        self.inner.is_empty()
     }
 }
 
-impl From<BTreeMap<(Color, Piece), u8>> for Captured {
-    fn from(data: BTreeMap<(Color, Piece), u8>) -> Self {
-        Captured { data: data }
-    }
-}
-
-impl<'a> IntoIterator for &'a Captured {
-    type Item = (&'a (Color, Piece), &'a u8);
-    type IntoIter = ::std::collections::btree_map::Iter<'a, (Color, Piece), u8>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.data.iter()
-    }
-}
-
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Position {
     board: Board,
     captured: Captured,
@@ -343,7 +331,7 @@ impl Position {
     }
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Game {
     pub position: Position,
     pub moves: Vec<Move>,
@@ -360,5 +348,29 @@ impl Game {
     }
 }
 
+
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use types::*;
+    use rustc_serialize::json;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(json::encode(&Board::hirate()).unwrap(),
+                   "{\"data\":[[[\"White\",\"Lance\"],[\"White\",\"Knight\"],[\"White\",\
+                    \"Silver\"],[\"White\",\"Gold\"],[\"White\",\"King\"],[\"White\",\"Gold\"],\
+                    [\"White\",\"Silver\"],[\"White\",\"Knight\"],[\"White\",\"Lance\"]],[null,\
+                    [\"White\",\"Bishop\"],null,null,null,null,null,[\"White\",\"Rook\"],null],\
+                    [[\"White\",\"Pawn\"],[\"White\",\"Pawn\"],[\"White\",\"Pawn\"],[\"White\",\
+                    \"Pawn\"],[\"White\",\"Pawn\"],[\"White\",\"Pawn\"],[\"White\",\"Pawn\"],\
+                    [\"White\",\"Pawn\"],[\"White\",\"Pawn\"]],[null,null,null,null,null,null,\
+                    null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,\
+                    null,null,null,null,null,null,null],[[\"Black\",\"Pawn\"],[\"Black\",\
+                    \"Pawn\"],[\"Black\",\"Pawn\"],[\"Black\",\"Pawn\"],[\"Black\",\"Pawn\"],\
+                    [\"Black\",\"Pawn\"],[\"Black\",\"Pawn\"],[\"Black\",\"Pawn\"],[\"Black\",\
+                    \"Pawn\"]],[null,[\"Black\",\"Rook\"],null,null,null,null,null,[\"Black\",\
+                    \"Bishop\"],null],[[\"Black\",\"Lance\"],[\"Black\",\"Knight\"],[\"Black\",\
+                    \"Silver\"],[\"Black\",\"Gold\"],[\"Black\",\"King\"],[\"Black\",\"Gold\"],\
+                    [\"Black\",\"Silver\"],[\"Black\",\"Knight\"],[\"Black\",\"Lance\"]]]}");
+    }
+}

@@ -68,11 +68,13 @@ pub fn captured(captured: &Captured) -> String {
     if captured.is_empty() {
         write!(ret, "-").unwrap();
     }
-    for (&(c, p), &n) in captured.into_iter() {
-        if n == 1 {
-            write!(ret, "{}", piece_with_color(c, p)).unwrap();
-        } else if n > 1 {
-            write!(ret, "{}{}", n, piece_with_color(c, p)).unwrap();
+    for (&c, cc) in captured.to_inner() {
+        for (&p, &n) in cc {
+            if n == 1 {
+                write!(ret, "{}", piece_with_color(c, p)).unwrap();
+            } else if n > 1 {
+                write!(ret, "{}{}", n, piece_with_color(c, p)).unwrap();
+            }
         }
     }
     ret

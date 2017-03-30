@@ -1,20 +1,18 @@
 {{#*inline "page"}}
-<div class="container">
-  <table>
-    <thead>
-      <th>
-        <td>id</td>
-      </th>
-    </thead>
-    <tbody>
-  {{#each games}}
-      <tr>
-        <td><a href="{{this.url}}">{{this.name}}</a></td>
-      </tr>
-  {{/each}}
-    </tbody>
-  </table>
-</div>
+<table>
+  <thead>
+    <th>
+      <td>id</td>
+    </th>
+  </thead>
+  <tbody>
+{{#each games}}
+    <tr>
+      <td><a href="{{this.url}}">{{this.name}}</a></td>
+    </tr>
+{{/each}}
+  </tbody>
+</table>
 {{/inline}}
 
 {{~> layout title="kifu" ~}}

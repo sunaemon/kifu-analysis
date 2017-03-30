@@ -1,4 +1,4 @@
-#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Piece {
     /// 歩
     Pawn,

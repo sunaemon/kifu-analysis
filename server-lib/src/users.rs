@@ -14,9 +14,12 @@ use urlencoded::UrlEncodedBody;
 
 use database_lib;
 use url;
+use super::scraping;
+
+use std::error::Error;
 
 pub struct Login {
-    email: String,
+    pub email: String,
 }
 
 pub struct UserRoute;
@@ -51,11 +54,33 @@ impl iron_sessionstorage::Value for Login {
     }
 }
 
-fn login_username(req: &mut Request) -> Option<Login> {
+pub fn login_username(req: &mut Request) -> Option<Login> {
     if let Ok(Some(l)) = req.session().get::<Login>() {
         if l.email != "" { Some(l) } else { None }
     } else {
         None
+    }
+}
+
+pub fn login_user(d: &database_lib::Database,
+                  req: &mut Request)
+                  -> IronResult<database_lib::models::User> {
+    let login = match login_username(req) {
+        Some(login) => login,
+        None => {
+            return Err(IronError::new(scraping::ScrapingError::General("User Not found"
+                                          .to_string()),
+                                      status::BadRequest))
+        }
+    };
+
+    match d.get_user(&login.email) {
+        Ok(u) => Ok(u),
+        Err(e) => {
+            Err(IronError::new(scraping::ScrapingError::General(e.description()
+                                   .to_string()),
+                               status::BadRequest))
+        }
     }
 }
 

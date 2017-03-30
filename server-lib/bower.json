@@ -2,10 +2,6 @@
   "name": "kifu-analysis",
   "private": true,
   "dependencies": {
-    "modernizr": "~2.8.1"
-  },
-  "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^3.2.0"
+    "bootstrap": "^3.3.7"
   }
 }

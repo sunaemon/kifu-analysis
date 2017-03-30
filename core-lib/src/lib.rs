@@ -6,7 +6,6 @@ extern crate log;
 
 extern crate subprocess;
 
-#[macro_use]
 extern crate rustc_serialize;
 
 pub mod types;

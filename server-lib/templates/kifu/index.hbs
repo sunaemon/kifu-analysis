@@ -1,20 +1,22 @@
 {{#*inline "page"}}
-<div class="container">
-  <table>
-    <thead>
-      <th>
-        <td>id</td>
-      </th>
-    </thead>
-    <tbody>
-  {{#each kifu}}
-      <tr>
-        <td><a href="{{this.id}}">{{this.id}}</a></td>
-      </tr>
-  {{/each}}
-    </tbody>
-  </table>
-</div>
+<table>
+  <thead>
+    <th>
+      <td>id</td>
+    </th>
+  </thead>
+  <tbody>
+{{#each kifu}}
+    <tr>
+      <td><a href="{{this.id}}">{{this.id}}</a></td>
+    </tr>
+{{/each}}
+  </tbody>
+</table>
+<form id="shougiwars_search">
+  <input id="shougiwars_usename" type="text">
+  <button type="submit">search</button>
+</form>
 {{/inline}}
 
 {{~> layout title="kifu" ~}}
