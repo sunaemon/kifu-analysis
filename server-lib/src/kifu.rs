@@ -2,7 +2,6 @@ use std::thread;
 use std::env;
 
 use router::Router;
-
 use core_lib::parser;
 use core_lib::encoder;
 use core_lib::usi_engine;
@@ -12,12 +11,14 @@ use iron::prelude::*;
 use iron::status;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
+use iron::Url;
 use handlebars_iron::Template;
 use urlencoded::UrlEncodedBody;
 
 use ws;
 use json;
 use database_lib;
+use super::scraping;
 
 const KIFU: &'static str =
     "+7776FU,L600	-3334FU,L599	+2726FU,L600	-8384FU,L596	+2625FU,L599	-4132KI,L593	+6978KI,L597	\
@@ -30,7 +31,7 @@ const KIFU: &'static str =
 pub fn start_websock_server() {
     ws::listen(env::var("WEBSOCKET_LISTEN").expect("WEBSOCKET_LISTEN must be set"), |out| {
             thread::spawn(move || {
-              let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
+              let g = parser::shougiwars::parse(KIFU.as_bytes()).unwrap();
               let en = usi_engine::UsiEngine::new();
               let d = 20;
 
@@ -61,15 +62,72 @@ impl KifuRoute {
                    get_move,
                    "kifu_get_move");
         router.get(format!("{}/:id", prefix), show, "kifu_show");
-        router.get(format!("{}/new", prefix), render_new, "kifu_new");
-        router.get(format!("{}/get_move/:id", prefix), new, "kifu_new_post");
-        router.get(format!("{}/", prefix), index, "kifu_index");
+        router.get(format!("{}/new", prefix), render_new, "kifu_render_new");
+        router.get(format!("{}/", prefix), render_index, "kifu_render_index");
+        router.get(format!("{}/get_move/:id", prefix), get_move, "kifu_new");
+        router.get(format!("{}/shougiwars/history/:user", prefix),
+                   render_shougiwars_history,
+                   "kifu_render_shougiwars_history");
+        router.get(format!("{}/shougiwars/game/:game", prefix),
+                   render_shougiwars_game,
+                   "kifu_render_shougiwars_game");
         KifuRoute
     }
 }
 
+fn show(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/show", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn render_new(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/new", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn render_index(_req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/index", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
+    let user = req.extensions.get::<Router>().unwrap().find("user").unwrap();
+
+    use rustc_serialize::json::{ToJson, Object, Array};
+    let mut data = Object::new();
+
+    match scraping::scrape_shougiwars_history(include_bytes!("../test/history")) {
+        //match scraping::get_shougiwars_history(&user, 0) {
+        Ok(game_names) => {
+            let mut games: Array = Array::new();
+            for game_name in game_names {
+                let mut game: Object = Object::new();
+                game.insert("name".to_string(), game_name.to_json());
+                let url = url_for!(req, "kifu_render_shougiwars_game", "game" => game_name);
+                game.insert("url".to_string(), url.to_string().to_json());
+                games.push(game.to_json());
+            }
+            data.insert("games".to_string(), games.to_json());
+        }
+        Err(e) => {
+            return Err(IronError::new(scraping::ScrapingError::General(e.description()
+                                          .to_string()),
+                                      status::BadRequest))
+        }
+    };
+
+    info!("{:?}", data);
+
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("kifu/shougiwars/history", data)).set_mut(status::Ok);
+    Ok(resp)
+}
+
 pub fn get_move(_req: &mut Request) -> IronResult<Response> {
-    let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
+    let g = parser::shougiwars::parse(KIFU.as_bytes()).unwrap();
     let mut p = Position::hirate();
 
     let mut ret = Vec::new();
@@ -94,32 +152,38 @@ pub fn get_move(_req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-fn show(_req: &mut Request) -> IronResult<Response> {
+
+
+fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
+    let game = req.extensions.get::<Router>().unwrap().find("game").unwrap();
+
+    use rustc_serialize::json::{ToJson, Json, Object};
+    let mut data = Object::new();
+
+    match scraping::scrape_shougiwars_game(include_bytes!("../test/game")) {
+        //match scraping::get_shougiwars_game(game) {
+        Ok(kifu_data) => {
+            let g = parser::shougiwars::parse(kifu_data.as_bytes()).unwrap();
+            let mut p = Position::hirate();
+
+            let kifu = Array::new();
+
+            let m = Object::new();
+            m.insert("move".to_string(), Json::Null);
+            m.insert("move_str".to_string(), Json::Null);
+            m.insert("position".to_string(), encoder::json::position(&p));
+
+            data.insert("kifu".to_string(), kifu.to_json())
+        }
+        Err(e) => {
+            return Err(IronError::new(scraping::ScrapingError::General(e.description()
+                                          .to_string()),
+                                      status::BadRequest))
+        }
+    };
+
     let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/show", ())).set_mut(status::Ok);
+    resp.set_mut(Template::new("kifu/shougiwars/game", data)).set_mut(status::Ok);
     Ok(resp)
-}
 
-fn render_new(_req: &mut Request) -> IronResult<Response> {
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/new", ())).set_mut(status::Ok);
-    Ok(resp)
-}
-
-fn new(req: &mut Request) -> IronResult<Response> {
-    let formdata = itry!(req.get_ref::<UrlEncodedBody>());
-
-    let data = iexpect!(formdata.get("email"))[0].to_owned();
-
-    let d = database_lib::Database::new();
-
-    itry!(d.create_user(&email, &password));
-
-    Ok(Response::with((status::Found, Redirect(root(&req.url)))))
-}
-
-fn index(_req: &mut Request) -> IronResult<Response> {
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/index", ())).set_mut(status::Ok);
-    Ok(resp)
 }

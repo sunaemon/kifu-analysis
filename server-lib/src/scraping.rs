@@ -19,6 +19,8 @@ pub enum ScrapingError {
     General(String),
 }
 
+unsafe impl Send for ScrapingError {}
+
 impl fmt::Display for ScrapingError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
@@ -81,6 +83,15 @@ pub fn scrape_shougiwars_game(s: &[u8]) -> Result<String, Box<Error>> {
     Err(Box::new(ScrapingError::General("no match".to_string())))
 }
 
+pub fn get_shougiwars_history(user: &str, start: u32) -> Result<Vec<String>, Box<Error>> {
+    let url = shougiwars_history_url(user, start)?;
+    info!("url: {}", url);
+    let data = read_https(url)?;
+    info!("data: {:?}", data);
+
+    scrape_shougiwars_history(&data)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,6 +99,8 @@ mod tests {
 
     #[test]
     fn it_works() {
+        assert_eq!(shougiwars_history_url("sunaemon0", 0).unwrap().to_string(),
+                   "http://shogiwars.heroz.jp/users/history/sunaemon0?start=0");
         assert_eq!(scrape_shougiwars_history(include_bytes!("../test/history")).unwrap(),
                    vec!["sunaemon0-kumagayaryu-20170329_174102",
                         "sunaemon0-jjmdtgjjmdtg-20170329_140528",

@@ -18,7 +18,7 @@ CREATE TABLE kifu (
   id serial primary key,
   user_id integer references users(id) not null,
   data varchar not null,
-  timestamp timestamp not null,
+  timestamp timestamp,
   black_id integer references gamers(id),
   white_id integer references gamers(id)
 )

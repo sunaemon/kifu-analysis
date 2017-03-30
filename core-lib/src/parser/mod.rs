@@ -1,2 +1,2 @@
-pub mod shougi_wars;
+pub mod shougiwars;
 pub mod usi;

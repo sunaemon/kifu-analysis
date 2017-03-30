@@ -146,15 +146,15 @@ impl Database {
     pub fn create_kifu(&self,
                        user: &User,
                        data: &str,
-                       black: &Gamer,
-                       white: &Gamer,
-                       timestamp: SystemTime)
+                       black: Option<&Gamer>,
+                       white: Option<&Gamer>,
+                       timestamp: Option<SystemTime>)
                        -> Result<Kifu, DatabaseError> {
         let new_kifu = NewKifu {
             user_id: user.id,
             data: data,
-            white_id: Some(white.id),
-            black_id: Some(black.id),
+            white_id: white.map(move |g| g.id),
+            black_id: black.map(move |g| g.id),
             timestamp: timestamp,
         };
 

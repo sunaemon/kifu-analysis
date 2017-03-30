@@ -24,7 +24,7 @@ pub struct Kifu {
     pub id: i32,
     pub user_id: i32,
     pub data: String,
-    pub timestamp: SystemTime,
+    pub timestamp: Option<SystemTime>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
 }
@@ -50,7 +50,7 @@ pub struct NewGamer<'a> {
 pub struct NewKifu<'a> {
     pub user_id: i32,
     pub data: &'a str,
-    pub timestamp: SystemTime,
+    pub timestamp: Option<SystemTime>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
 }
