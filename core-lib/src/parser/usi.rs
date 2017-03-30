@@ -130,13 +130,13 @@ fn not_newline(c: u8) -> bool {
     c != b'\n'
 }
 
-#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Score {
     Cp(i64),
     Mate(i64),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Info {
     String(String),
     Depth(u64),
@@ -150,7 +150,7 @@ pub enum Info {
     Pv(String),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Response {
     UsiOk,
     ReadyOk,

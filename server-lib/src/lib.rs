@@ -5,9 +5,6 @@ extern crate env_logger;
 
 extern crate regex;
 
-#[macro_use]
-extern crate json;
-
 extern crate ws;
 
 // iron crates
@@ -106,11 +103,11 @@ pub fn start_servers() {
     chain.link_after(hbse);
     chain.link_after(logger_after);
 
-    //    thread::spawn(move || {
-    Iron::new(chain)
-        .http(web_listen)
-        .unwrap();
-    //   });
+    thread::spawn(move || {
+        Iron::new(chain)
+            .http(web_listen)
+            .unwrap();
+    });
 
-    //  kifu::start_websock_server();
+    kifu::start_websock_server();
 }

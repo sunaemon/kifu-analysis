@@ -1,8 +1,11 @@
 use std::thread;
 use std::env;
+use std::str::FromStr;
+use std::sync::{Arc, Mutex, Condvar};
 
 use router::Router;
 use core_lib::parser;
+use core_lib::parser::usi::Score;
 use core_lib::encoder;
 use core_lib::usi_engine;
 use core_lib::types::*;
@@ -11,9 +14,7 @@ use iron::prelude::*;
 use iron::status;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
-use iron::Url;
 use handlebars_iron::Template;
-use urlencoded::UrlEncodedBody;
 use iron::modifiers::Redirect;
 
 use ws;
@@ -22,33 +23,59 @@ use super::scraping;
 use super::users;
 use rustc_serialize::json;
 
-use std::str::FromStr;
+#[derive(PartialEq, Clone, RustcDecodable, RustcEncodable)]
+struct ScoreWithNum {
+    n: usize,
+    score: Score,
+}
 
 pub fn start_websock_server() {
-    /*
-    ws::listen(env::var("WEBSOCKET_LISTEN").expect("WEBSOCKET_LISTEN must be set"), |out| {
-            thread::spawn(move || {
-              let g = parser::shougiwars::parse(KIFU.as_bytes()).unwrap();
-              let en = usi_engine::UsiEngine::new();
-              let d = 20;
+    ws::listen(env::var("WEBSOCKET_LISTEN").expect("WEBSOCKET_LISTEN must be set"),
+               |out| {
+        let kifu_id_recv = Arc::new((Mutex::new(None), Condvar::new()));
+        let kifu_id_send = kifu_id_recv.clone();
+        thread::spawn(move || {
+            let &(ref kifu_id, ref kifu_id_updated) = &*kifu_id_send;
+            let mut kifu_id = kifu_id.lock().unwrap();
 
-              for n in 0 .. (g.moves.len() + 1) {
-                let s = object! {
-                     "n" => n,
-                     "score" => ""//encoder::json::score(&en.get_score(&g.position, &g.moves[0..n], d as u64))}.dump();
-
-                info!("{}", s);
-                out.send(s).unwrap();
-              }
-            });
-
-            move |msg| {
-                println!("Got message: {}", msg);
-                Ok(())
+            while (*kifu_id).is_some() {
+                kifu_id = kifu_id_updated.wait(kifu_id).unwrap();
             }
-        })
+
+            let kifu_id = (*kifu_id).unwrap();
+
+            let d = database_lib::Database::new();
+            let k = d.get_kifu(kifu_id).unwrap();
+
+            let g = json::decode::<Game>(&k.data).unwrap();
+            let en = usi_engine::UsiEngine::new();
+            let d = 20;
+
+            for n in 0..(g.moves.len() + 1) {
+                let s = ScoreWithNum {
+                    n: n,
+                    score: en.get_score(&g.position, &g.moves[0..n], d as u64),
+                };
+                let dat_to_send = json::encode(&s).unwrap();
+
+                info!("{}", dat_to_send);
+                out.send(dat_to_send).unwrap();
+            }
+        });
+
+        move |msg| {
+            if let ws::Message::Text(msg) = msg {
+                println!("Got message: {}", msg);
+                let id = i32::from_str(&msg).unwrap();
+                let &(ref kifu_id, ref kifu_id_updated) = &*kifu_id_recv;
+                let mut kifu_id = kifu_id.lock().unwrap();
+                *kifu_id = Some(id);
+                kifu_id_updated.notify_all();
+            }
+            Ok(())
+        }
+    })
         .unwrap()
-        */
 }
 
 pub struct KifuRoute;

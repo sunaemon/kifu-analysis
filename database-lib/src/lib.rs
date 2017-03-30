@@ -122,6 +122,16 @@ impl Database {
     }
 
     pub fn own_kifu(&self, user: &User, kifu: &Kifu) -> Result<(), DatabaseError> {
+        let uks = users_kifu::table.filter(users_kifu::user_id.eq(user.id))
+            .filter(users_kifu::kifu_id.eq(kifu.id))
+            .load::<UserKifu>(&self.conn)
+            .expect("error loading user");
+        if uks.len() > 1 {
+            panic!("Unique validation goes wrong!! users_kifu: {:?}", uks);
+        } else if uks.len() == 1 {
+            return Ok(());
+        }
+
         let new_user_kifu = NewUserKifu {
             user_id: user.id,
             kifu_id: kifu.id,
