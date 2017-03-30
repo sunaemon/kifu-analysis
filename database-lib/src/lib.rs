@@ -13,7 +13,7 @@ pub mod models;
 
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
-use models::{User, NewUser, Kifu, NewKifu};
+use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer};
 use rand::{Rng, OsRng};
 
 use crypto::hmac::Hmac;
@@ -23,7 +23,8 @@ use std::error::Error;
 use std::env;
 use std::fmt;
 
-use schema::{users, kifu};
+use schema::{users, kifu, gamers};
+use std::time::SystemTime;
 
 pub struct Database {
     pub conn: PgConnection,
@@ -112,10 +113,49 @@ impl Database {
         Ok(us)
     }
 
-    pub fn create_kifu(&self, user: User, data: &str) -> Result<Kifu, DatabaseError> {
+    pub fn create_gamer(&self, name: &str, service: &str) -> Result<Gamer, DatabaseError> {
+        let new_gamer = NewGamer {
+            name: name,
+            service: service,
+        };
+
+        match diesel::insert(&new_gamer)
+            .into(gamers::table)
+            .get_result(&self.conn) {
+            Ok(gamer) => Ok(gamer),
+            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
+        }
+    }
+
+    pub fn create_or_find_gamer(&self, name: &str, service: &str) -> Result<Gamer, DatabaseError> {
+        let gs = gamers::table.filter(gamers::name.eq(name))
+            .filter(gamers::service.eq(service))
+            .load::<Gamer>(&self.conn)
+            .expect("error loading user");
+        if gs.len() > 1 {
+            panic!("Unique validation goes wrong!! gamers: {:?}", gs);
+        }
+
+        if gs.len() == 1 {
+            Ok(gs[0].clone())
+        } else {
+            self.create_gamer(name, service)
+        }
+    }
+
+    pub fn create_kifu(&self,
+                       user: &User,
+                       data: &str,
+                       black: &Gamer,
+                       white: &Gamer,
+                       timestamp: SystemTime)
+                       -> Result<Kifu, DatabaseError> {
         let new_kifu = NewKifu {
             user_id: user.id,
             data: data,
+            white_id: Some(white.id),
+            black_id: Some(black.id),
+            timestamp: timestamp,
         };
 
         match diesel::insert(&new_kifu)

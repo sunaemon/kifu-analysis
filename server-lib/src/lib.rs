@@ -3,6 +3,8 @@ extern crate log;
 
 extern crate env_logger;
 
+extern crate regex;
+
 #[macro_use]
 extern crate json;
 
@@ -10,6 +12,7 @@ extern crate ws;
 
 // iron crates
 extern crate hyper;
+extern crate hyper_native_tls;
 #[macro_use]
 extern crate iron;
 extern crate logger;
@@ -33,6 +36,7 @@ extern crate database_lib;
 mod users;
 mod kifu;
 mod error;
+mod scraping;
 
 use std::path::Path;
 

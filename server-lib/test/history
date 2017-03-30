@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>sunaemon0 対局履歴</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="format-detection" content="telephone=no">
+    <meta name="description" content="将棋ウォーズ【日本将棋連盟公認】は、従来の将棋アプリの常識を覆す派手な演出、グラフィックとAIを駆使し、超初心者から上級者まですぐに適切な相手が見つかる充実のオンライン対局を提供するサービスです。 10分切れ負けや3分切れ負けや10秒将棋でスピーディーに対局できます。オフラインでコンピュータと対局もできます。将棋ウォーズの段級位で、日本将棋連盟公認の免状・認定状（六段～５級）申請できます。" />
+    <meta name="keywords" content="安堂ロイド,将棋バトル,バレエメカニック,サニー千葉,山本一成,電王,将棋,ゲーム,将棋ウォーズ,日本将棋連盟,無料,アプリ,iPhone,android,SHOGIWARS,shogiwars,棋神降臨,どうぶつしょうぎウォーズ,どうぶつしょうぎ,オンライン対局,オンライン,棋力,賞金王,羽生善治,名人,渡辺明,竜王,プロ棋士,囲い,戦法,Ponanza,棋士カード,電王戦,ニコニコ,ツツカナ,将棋ウォーズカップ,神アプリ,ハライチ" />
+    <meta name="twitter:site" content="@warsminamin">
+    <meta name="twitter:card" content="app">
+    <meta name="twitter:description" content="将棋ウォーズ【日本将棋連盟公認】は、従来の将棋アプリの常識を覆す派手な演出、グラフィックとAIを駆使し、超初心者から上級者まですぐに適切な相手が見つかる充実のオンライン対局を提供するサービスです。 10分切れ負けや3分切れ負けや10秒将棋でスピーディーに対局できます。オフラインでコンピュータと対局もできます。将棋ウォーズの段級位で、日本将棋連盟公認の免状・認定状（六段～５級）申請できます。">
+    <meta name="twitter:app:country" content="JP">
+    <meta name="twitter:app:name:iphone" content="将棋ウォーズ">
+    <meta name="twitter:app:id:iphone" content="496801169">
+    <meta name="twitter:app:url:iphone" content="https://itunes.apple.com/jp/app/id496801169?mt=8">
+    <meta name="twitter:app:name:ipad" content="将棋ウォーズ">
+    <meta name="twitter:app:id:ipad" content="496801169">
+    <meta name="twitter:app:url:ipad" content="https://itunes.apple.com/jp/app/id496801169?mt=8">
+    <meta name="twitter:app:name:googleplay" content="将棋ウォーズ">
+    <meta name="twitter:app:id:googleplay" content="jp.heroz.android.shogiwars">
+    <meta name="twitter:app:url:googleplay" content="https://play.google.com/store/apps/details?id=jp.heroz.android.shogiwars">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link href="//shogiwars-cdn.heroz.jp/assets/application-ca5ae0689e4f6af3645eef05d6082725.css" media="screen" rel="stylesheet" type="text/css" />
+    <script src="//shogiwars-cdn.heroz.jp/assets/application-d05e74282170856bef4f72747f3b1b4f.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery.easydropdown.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/easydropdown.css"/>
+
+    <meta content="authenticity_token" name="csrf-param" />
+<meta content="kwDNQ2+Eum4SCANEnE3XmPNbvKutdfHSOO0btfrtnj8=" name="csrf-token" />
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-23457028-68']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+
+      $(function() {
+      if (document.referrer == window.parent.location) {
+        unity.callback("/invisibleReturnButton");
+      }
+      else {
+        unity.callback("/visibleReturnButton");
+      }
+      });
+    </script>
+    <style type="text/css">
+    	#topNavigation{    		
+				position: absolute;
+    		left: 80%;
+    		min-width: 15%;
+    		max-width: 20%;    		
+    		padding: 12px 0px;
+    	}
+    	#topNavigation div{
+    		width: 100%; 		    		
+    		/*background: #2E7D32;*/
+    		background: rgba(46, 125, 50, 0.8);
+    		border: 1px solid #1B5E20;
+				border-radius: 4px; 
+				-webkit-border-radius: 4px;
+				-moz-border-radius: 4px;    		     		
+    	}
+    	#topNavigation a{    		
+    		display: block;
+    		padding: 6px;   		
+    		color: #A5D6A7;
+    		font-size: 12px;
+    		font-weight: bold;
+				text-shadow: 1px 1px 1px #1B5E20;
+				-moz-text-shadow: 1px 1px 1px #1B5E20;
+				-webkit-text-shadow: 1px 1px 1px #1B5E20;	    		
+				text-decoration: none;   				
+    	}
+    </style>
+  </head>
+<body class="history">
+  <div id="wrapper">
+    <div id="history">
+  
+
+  <div class="contents winner">
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/kumagayaryu?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_-r.png" width="20" /></td><td>kumagayaryu 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/29 17:41</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-kumagayaryu-20170329_174102?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents winner">
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/jjmdtgjjmdtg?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_-r.png" width="20" /></td><td>jjmdtgjjmdtg 3級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/29 14:05</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-jjmdtgjjmdtg-20170329_140528?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents winner">
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/sknow?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_g0403e-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_g0403e-r.png" width="20" /></td><td>sknow 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/29 13:55</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-sknow-20170329_135526?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents ">
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/masaisan88?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_e1612s9c-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_e1612s9c-r.png" width="20" /></td><td>masaisan88 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/27 15:40</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-masaisan88-20170327_154020?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents ">
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/kentarou31?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_05-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_05-l.png" width="20" /></td><td>kentarou31 初段</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-r.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/27 13:50</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/kentarou31-sunaemon0-20170327_135043?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents winner">
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/kaede0926?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_e1501s2c-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_e1501s2c-l.png" width="20" /></td><td>kaede0926 3級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-r.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/27 13:46</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/kaede0926-sunaemon0-20170327_134648?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents winner">
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/tutomu19640422?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_e118-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_e118-r.png" width="20" /></td><td>tutomu19640422 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/25 14:08</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-tutomu19640422-20170325_140834?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents winner">
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/mahinute?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_e1501s2c-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_e1501s2c-r.png" width="20" /></td><td>mahinute 3級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/25 13:52</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-mahinute-20170325_135235?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents ">
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-l.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/Takahiro_s?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_05-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_05-r.png" width="20" /></td><td>Takahiro_s 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/25 12:37</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/sunaemon0-Takahiro_s-20170325_123724?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+  <div class="contents winner">
+      <div valign="top" class="history_prof lose">
+        <div valign="center">
+          <img alt="負" class="setting_title" src="/images/icon_lose.png" width="23" />
+        </div>
+        <a href="/users/Rettosei?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_06-l" src="//shogiwars-cdn.heroz.jp/images/avatar/_06-l.png" width="20" /></td><td>Rettosei 5級</td></tr></table></a>
+      </div>
+      <div valign="top" class="history_prof win">
+        <div valign="center">
+          <img alt="勝" class="setting_title" src="/images/icon_win.png" width="23" />
+        </div>
+        <a href="/users/sunaemon0?locale=ja"><table><tr><td style="padding-right:2px" valign="center"><img alt="_f170105a-r" src="//shogiwars-cdn.heroz.jp/images/avatar/_f170105a-r.png" width="20" /></td><td>sunaemon0 2級</td></tr></table></a>
+      </div>
+    <br clear="all">
+
+    <div style="float:left">2017/03/24 11:11</div>
+
+
+    <div class="short_btn1">
+      <a href="//kif-pona.heroz.jp/games/Rettosei-sunaemon0-20170324_111157?locale=ja">
+        見る
+      </a>
+    </div>
+    <br clear="all">
+  </div>
+
+<div class="paging">
+  <div class="prev">
+    &lt;&lt;前へ
+    <img class="indicator" src="/images/ajax-loader.gif" />
+  </div>
+  <div class="next">
+    <img class="indicator" src="/images/ajax-loader.gif" />
+    <a href="/users/history/sunaemon0?gtype=&amp;locale=ja&amp;start=10" class="replace_link" onclick="$(&quot;#history .next .indicator&quot;).css(&quot;visibility&quot;, &quot;visible&quot;);">次へ&gt;&gt;</a>
+  </div>
+  <br clear="all" />
+</div>
+
+</div>
+<script type="text/javascript">
+ $(function() {
+     $("a.replace_link").on("click", function(ev){
+	 ev.preventDefault();
+	 location.replace(ev.target.href);
+     })
+ });
+</script>
+
+  </div>
+  <div id="topNavigation">
+  	<div><a href="javascript:void(0)" onClick="goTop()">▲TOP</a></div>
+  	<script type="text/javascript">
+			function goTop(){
+			  $('body,html').animate({scrollTop: 0},500);
+			}
+  	</script>
+  </div>  
+</body>
+</html>

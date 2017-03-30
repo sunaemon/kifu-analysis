@@ -13,10 +13,11 @@ use iron::status;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
 use handlebars_iron::Template;
+use urlencoded::UrlEncodedBody;
 
-//use database_lib;
 use ws;
 use json;
+use database_lib;
 
 const KIFU: &'static str =
     "+7776FU,L600	-3334FU,L599	+2726FU,L600	-8384FU,L596	+2625FU,L599	-4132KI,L593	+6978KI,L597	\
@@ -51,6 +52,22 @@ pub fn start_websock_server() {
         .unwrap()
 }
 
+pub struct KifuRoute;
+
+impl KifuRoute {
+    pub fn new(router: &mut Router) -> KifuRoute {
+        let prefix = "/kifu";
+        router.get(format!("{}/get_move/:id", prefix),
+                   get_move,
+                   "kifu_get_move");
+        router.get(format!("{}/:id", prefix), show, "kifu_show");
+        router.get(format!("{}/new", prefix), render_new, "kifu_new");
+        router.get(format!("{}/get_move/:id", prefix), new, "kifu_new_post");
+        router.get(format!("{}/", prefix), index, "kifu_index");
+        KifuRoute
+    }
+}
+
 pub fn get_move(_req: &mut Request) -> IronResult<Response> {
     let g = parser::shougi_wars::parse(KIFU.as_bytes()).unwrap();
     let mut p = Position::hirate();
@@ -83,37 +100,26 @@ fn show(_req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-fn new(_req: &mut Request) -> IronResult<Response> {
+fn render_new(_req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
     resp.set_mut(Template::new("kifu/new", ())).set_mut(status::Ok);
     Ok(resp)
 }
 
-fn new_post(_req: &mut Request) -> IronResult<Response> {
-    let mut resp = Response::new();
+fn new(req: &mut Request) -> IronResult<Response> {
+    let formdata = itry!(req.get_ref::<UrlEncodedBody>());
 
-    resp.set_mut(Template::new("kifu/new_post", ())).set_mut(status::Ok);
-    Ok(resp)
+    let data = iexpect!(formdata.get("email"))[0].to_owned();
+
+    let d = database_lib::Database::new();
+
+    itry!(d.create_user(&email, &password));
+
+    Ok(Response::with((status::Found, Redirect(root(&req.url)))))
 }
 
 fn index(_req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
     resp.set_mut(Template::new("kifu/index", ())).set_mut(status::Ok);
     Ok(resp)
-}
-
-pub struct KifuRoute;
-
-impl KifuRoute {
-    pub fn new(router: &mut Router) -> KifuRoute {
-        let prefix = "/kifu";
-        router.get(format!("{}/get_move/:id", prefix),
-                   get_move,
-                   "kifu_get_move");
-        router.get(format!("{}/:id", prefix), show, "kifu_show");
-        router.get(format!("{}/new", prefix), new_post, "kifu_new");
-        router.get(format!("{}/get_move/:id", prefix), new, "kifu_new_post");
-        router.get(format!("{}/", prefix), index, "kifu_index");
-        KifuRoute
-    }
 }

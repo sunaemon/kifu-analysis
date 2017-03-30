@@ -10,6 +10,7 @@ env_logger = "^0.4.2"
 json = "^0.11.6"
 
 hyper = "^0.10.5"
+hyper-native-tls = "*"
 iron = "^0.5.1"
 staticfile = "^0.4.0"
 mount = "^0.3.0"
@@ -25,6 +26,7 @@ ws = "^0.6.1"
 
 url = "*"
 rustc-serialize = "^0.3.16"
+regex = "*"
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"

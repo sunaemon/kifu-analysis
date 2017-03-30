@@ -21,14 +21,14 @@ pub struct Login {
 
 pub struct UserRoute;
 
-
 impl UserRoute {
     pub fn new(router: &mut Router) -> UserRoute {
         let prefix = "/users".to_string();
-        router.get(format!("{}/signup", prefix), signup, "signup");
-        router.post(format!("{}/signup", prefix), signup_post, "signup_post");
-        router.get(format!("{}/login", prefix), login, "login");
-        router.post(format!("{}/login", prefix), login_post, "login_post");
+        router.get(format!("{}/signup", prefix), render_signup, "render_signup");
+        router.get(format!("{}/login", prefix), render_login, "render_login");
+
+        router.post(format!("{}/signup", prefix), signup, "signup");
+        router.post(format!("{}/login", prefix), login, "login");
         router.get(format!("{}/logout", prefix), logout, "logout");
 
         UserRoute
@@ -65,13 +65,24 @@ fn root(url: &iron::Url) -> iron::Url {
     iron::Url::from_generic_url(url).unwrap()
 }
 
-fn signup(_req: &mut Request) -> IronResult<Response> {
+fn render_signup(_req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
     resp.set_mut(Template::new("users/signup", ())).set_mut(status::Ok);
     Ok(resp)
 }
 
-fn signup_post(req: &mut Request) -> IronResult<Response> {
+fn render_login(req: &mut Request) -> IronResult<Response> {
+    if login_username(req).is_some() {
+        // Already logged in
+        return Ok(Response::with((status::Found, Redirect(root(&req.url)))));
+    }
+
+    let mut resp = Response::new();
+    resp.set_mut(Template::new("users/login", ())).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn signup(req: &mut Request) -> IronResult<Response> {
     {
         let formdata = itry!(req.get_ref::<UrlEncodedBody>());
 
@@ -87,17 +98,6 @@ fn signup_post(req: &mut Request) -> IronResult<Response> {
 }
 
 fn login(req: &mut Request) -> IronResult<Response> {
-    if login_username(req).is_some() {
-        // Already logged in
-        return Ok(Response::with((status::Found, Redirect(root(&req.url)))));
-    }
-
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("users/login", ())).set_mut(status::Ok);
-    Ok(resp)
-}
-
-fn login_post(req: &mut Request) -> IronResult<Response> {
     let email = {
         let formdata = itry!(req.get_ref::<UrlEncodedBody>());
 

@@ -1,7 +1,7 @@
-use super::schema::{users, kifu};
+use super::schema::{users, kifu, gamers};
+use std::time::SystemTime;
 
 #[derive(Identifiable, Queryable, Associations, Default, Debug, Clone, PartialEq, Eq, Hash)]
-#[has_many(kifu)]
 pub struct User {
     pub id: i32,
     pub email: String,
@@ -11,13 +11,22 @@ pub struct User {
     pub balance: i32,
 }
 
-#[derive(Identifiable, Queryable, Associations, Default, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Identifiable, Queryable, Associations, Debug, Clone, PartialEq, Eq)]
+pub struct Gamer {
+    pub id: i32,
+    pub name: String,
+    pub service: String,
+}
+
+#[derive(Identifiable, Queryable, Associations, Debug, Clone, PartialEq, Eq)]
 #[table_name="kifu"]
-#[belongs_to(User)]
 pub struct Kifu {
     pub id: i32,
     pub user_id: i32,
     pub data: String,
+    pub timestamp: SystemTime,
+    pub black_id: Option<i32>,
+    pub white_id: Option<i32>,
 }
 
 #[derive(Insertable)]
@@ -30,8 +39,18 @@ pub struct NewUser<'a> {
 }
 
 #[derive(Insertable)]
+#[table_name="gamers"]
+pub struct NewGamer<'a> {
+    pub name: &'a str,
+    pub service: &'a str,
+}
+
+#[derive(Insertable)]
 #[table_name="kifu"]
 pub struct NewKifu<'a> {
     pub user_id: i32,
     pub data: &'a str,
+    pub timestamp: SystemTime,
+    pub black_id: Option<i32>,
+    pub white_id: Option<i32>,
 }
