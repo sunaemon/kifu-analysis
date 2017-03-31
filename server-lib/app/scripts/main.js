@@ -1,69 +1,72 @@
 $(document).ready(function() {
     function populate_board(kifu_id) {
-
-        const piece_to_num = {
-            Pawn: 8,
-            Lance: 7,
-            Knight: 6,
-            Silver: 5,
-            Gold: 4,
-            Bishop: 3,
-            Rook: 2,
-            King: 1,
-            PPawn: 18,
-            PLance: 17,
-            PKnight: 16,
-            PSilver: 15,
-            Horse: 13,
-            Dragon: 12
-        };
-        const color_to_num = {
-            Black: 0,
-            White: 1
-        };
-        function cp_to_img(color, piece) {
-            if (color === 'Black') {
-                return piece_to_num[piece];
-            } else if (color === 'White') {
-                return piece_to_num[piece] + 30;
+        function get_image_name(cp) {
+            const piece_to_num = {
+                Pawn: 8,
+                Lance: 7,
+                Knight: 6,
+                Silver: 5,
+                Gold: 4,
+                Bishop: 3,
+                Rook: 2,
+                King: 1,
+                PPawn: 18,
+                PLance: 17,
+                PKnight: 16,
+                PSilver: 15,
+                Horse: 13,
+                Dragon: 12
+            };
+            function cp_to_img(color, piece) {
+                if (color === 'Black') {
+                    return piece_to_num[piece];
+                } else if (color === 'White') {
+                    return piece_to_num[piece] + 30;
+                }
             }
-        }
 
-        const images = { White: {}, Black: {} };
-        for (const color in color_to_num) {
-            for (const piece in piece_to_num) {
-                const img = new Image();
-                img.src = `/app/images/piece/sgl${`0${cp_to_img(color, piece)}`.slice(-2)}.png`;
-                images[color][piece] = img;
-            }
-        }
-
-        function get_image(cp) {
             const [color, piece] = cp;
-            return images[color][piece];
+            return `sgl${`0${cp_to_img(color, piece)}`.slice(-2)}`;
         }
-        const board_img = new Image();
-        board_img.src = '/app/images/board.jpg';
+
+        let board_init = false;
+        let sprite = null;
+        $.get('/dist/sprite.json', function(d) {
+            sprite = d;
+            if (!board_init && kifu) {
+                update_board(kifu[0].position.board.inner);
+                board_init = true;
+            }
+        });
+
+        const stripe_img = $('#sprite');
         function update_board(board) {
             const ctx = $('#board')[0].getContext('2d');
-            ctx.drawImage(board_img, 0, 0, 600, 640);
+            ctx.drawImage(stripe_img[0], sprite.board.x, sprite.board.y, sprite.board.width, sprite.board.height, 0, 0, sprite.board.width, sprite.board.height);
 
             for (let j = 0; j < 9; j++) {
                 for (let i = 0; i < 9; i++) {
                     const cp = board[j][8 - i];
-                    if (cp)
-                        ctx.drawImage(get_image(cp), 30 + 60 * i, 30 + 64 * j, 60, 64);
+                    if (cp) {
+                        const name = get_image_name(cp);
+                        ctx.drawImage(stripe_img[0], sprite[name].x, sprite[name].y, sprite[name].width, sprite[name].height, 30 + 60 * i, 30 + 64 * j, sprite[name].width, sprite[name].height);
+                    }
                 }
             }
         }
 
-        let kifu = {};
+        let kifu = null;
         $.get(`/kifu/show_moves/${kifu_id}`, function(d) {
             kifu = d;
             $('#moves').empty();
             kifu.forEach(function(m, n) {
                 $('#moves').append($('<option>').val(n).text(`${n} ${m.movestr}`));
             });
+            $('#moves').val('0');
+            if (!board_init && sprite) {
+                update_board(kifu[0].position.board.inner);
+                board_init = true;
+            }
         });
         $('#moves').change(function() {
             update_board(kifu[parseInt($('#moves').val())].position.board.inner);

@@ -92,6 +92,7 @@ pub fn start_servers() {
     let mut mount = Mount::new();
     mount.mount("/", route);
     mount.mount("/app", Static::new(Path::new("server-lib/app")));
+    mount.mount("/dist", Static::new(Path::new("server-lib/dist")));
     mount.mount("/bower_components",
                 Static::new(Path::new("server-lib/bower_components")));
 
