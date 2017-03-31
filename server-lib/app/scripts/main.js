@@ -72,7 +72,7 @@ $(document).ready(function() {
             update_board(kifu[parseInt($('#moves').val())].position.board.inner);
         });
 //        const connection = new WebSocket('ws://192.168.1.40:3001');
-        const connection = new WebSocket('wss://ws.kifu-analysis.com;');
+        const connection = new WebSocket('wss://ws.kifu-analysis.com');
         connection.onopen = function() {
             console.log('connection opened');
             connection.send(kifu_id);
