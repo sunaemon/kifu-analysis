@@ -3,6 +3,8 @@ use std::collections::BTreeMap;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::fmt;
+use std::error::Error;
+
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Color {
     ///先手
@@ -262,6 +264,30 @@ pub struct Position {
     color: Color,
 }
 
+#[derive(Debug)]
+pub struct MoveError {
+    message: String,
+}
+
+impl MoveError {
+    fn new(message: &str) -> MoveError {
+        MoveError { message: message.to_string() }
+    }
+}
+
+impl fmt::Display for MoveError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl Error for MoveError {
+    fn description(&self) -> &str {
+        &self.message
+    }
+}
+
+
 impl Position {
     #[allow(dead_code)]
     pub fn new(board: Board, captured: Captured, c: Color) -> Position {
@@ -289,29 +315,29 @@ impl Position {
     }
 
     /// positionが壊れない程度に正しいmoveか？
-    pub fn move_valid(&self, m: &Move) -> Result<(), String> {
+    pub fn move_valid(&self, m: &Move) -> Result<(), MoveError> {
         if m.color() != self.color() {
-            return Err("color check failed".to_string());
+            return Err(MoveError::new("color check failed"));
         }
 
 
         if let Some(p) = m.from() {
             if self.board()[p] != Some((m.color(), m.piece_before_move())) {
-                println!("Board: {:?}", self.board());
-                return Err(format!("from check failed {:?}(at {:?} is not {:?}",
-                                   self.board()[p],
-                                   p,
-                                   (m.color(), m.piece_before_move())));
+                debug!("Board: {:?}", self.board());
+                return Err(MoveError::new(&format!("from check failed {:?}(at {:?} is not {:?}",
+                                                   self.board()[p],
+                                                   p,
+                                                   (m.color(), m.piece_before_move()))));
             }
         } else {
             if !self.captured.has(m.color(), m.piece()) {
-                return Err("drop check failed".to_string());
+                return Err(MoveError::new("drop check failed"));
             }
         }
 
         Ok(())
     }
-    pub fn make_move(&mut self, m: &Move) -> Result<(), String> {
+    pub fn make_move(&mut self, m: &Move) -> Result<(), MoveError> {
         try!(self.move_valid(m));
 
         if let Some(from) = m.from() {

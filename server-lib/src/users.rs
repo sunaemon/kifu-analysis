@@ -17,6 +17,25 @@ use url;
 use super::scraping;
 
 use std::error::Error;
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq)]
+struct AuthentificationError {
+    message: String,
+}
+
+impl fmt::Display for AuthentificationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.message.fmt(f)
+    }
+}
+
+impl Error for AuthentificationError {
+    fn description(&self) -> &str {
+        &self.message
+    }
+}
+
 
 pub struct Login {
     pub email: String,
@@ -64,24 +83,11 @@ pub fn login_username(req: &mut Request) -> Option<Login> {
 
 pub fn login_user(d: &database_lib::Database,
                   req: &mut Request)
-                  -> IronResult<database_lib::models::User> {
-    let login = match login_username(req) {
-        Some(login) => login,
-        None => {
-            return Err(IronError::new(scraping::ScrapingError::General("User Not found"
-                                          .to_string()),
-                                      status::BadRequest))
-        }
-    };
+                  -> Result<database_lib::models::User, Box<Error>> {
+    let login =
+        login_username(req).ok_or(AuthentificationError { message: "No Session".to_string() })?;
 
-    match d.get_user(&login.email) {
-        Ok(u) => Ok(u),
-        Err(e) => {
-            Err(IronError::new(scraping::ScrapingError::General(e.description()
-                                   .to_string()),
-                               status::BadRequest))
-        }
-    }
+    Ok(d.get_user(&login.email)?)
 }
 
 fn root(url: &iron::Url) -> iron::Url {
@@ -136,11 +142,11 @@ fn login(req: &mut Request) -> IronResult<Response> {
         email
     };
 
-    try!(req.session().set(Login { email: email }));
+    req.session().set(Login { email: email })?;
     Ok(Response::with((status::Found, Redirect(root(&req.url)))))
 }
 
 fn logout(req: &mut Request) -> IronResult<Response> {
-    try!(req.session().set(Login { email: "".to_string() }));
+    req.session().set(Login { email: "".to_string() })?;
     Ok(Response::with((status::Found, Redirect(root(&req.url)))))
 }

@@ -34,16 +34,20 @@ extern crate rustc_serialize;
 extern crate core_lib;
 extern crate database_lib;
 
+#[macro_use]
+mod error;
 mod users;
 mod kifu;
-mod error;
 mod scraping;
 
 use std::path::Path;
+use std::error::Error;
+use std::fmt;
 
 use logger::Logger;
 
 use iron::prelude::*;
+use iron::prelude::IronResult;
 use iron::status;
 use staticfile::Static;
 use mount::Mount;
