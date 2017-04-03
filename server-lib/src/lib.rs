@@ -7,6 +7,9 @@ extern crate regex;
 
 extern crate ws;
 
+#[macro_use]
+extern crate lazy_static;
+
 // iron crates
 extern crate hyper;
 extern crate hyper_native_tls;
@@ -56,6 +59,15 @@ use iron_sessionstorage::SessionStorage;
 use iron_sessionstorage::backends::SignedCookieBackend;
 use handlebars_iron::Template;
 
+
+lazy_static! {
+  static ref SESSION_SECRET: Vec<u8> = env::var("SESSION_SECRET")
+        .expect("SESSION_SECRET must be set")
+        .as_bytes()
+        .to_owned();
+  static ref WEB_LISTEN: String = env::var("WEB_LISTEN").expect("WEB_LISTEN must be set").to_string();
+}
+
 fn index(req: &mut Request) -> IronResult<Response> {
     use std::collections::BTreeMap;
     use rustc_serialize::json::{ToJson, Json};
@@ -73,12 +85,6 @@ fn index(req: &mut Request) -> IronResult<Response> {
 
 pub fn start_servers() {
     env_logger::init().unwrap();
-    let session_secret = env::var("SESSION_SECRET")
-        .expect("SESSION_SECRET must be set")
-        .as_bytes()
-        .to_owned();
-    let web_listen = env::var("WEB_LISTEN").expect("WEB_LISTEN must be set");
-
 
     let mut hbse = HandlebarsEngine::new();
     hbse.add(Box::new(DirectorySource::new("./server-lib/templates/", ".hbs")));
@@ -99,14 +105,14 @@ pub fn start_servers() {
     let mut chain = Chain::new(mount);
     let (logger_before, logger_after) = Logger::new(None);
     chain.link_before(logger_before);
-    chain.link_around(SessionStorage::new(SignedCookieBackend::new(session_secret)));
+    chain.link_around(SessionStorage::new(SignedCookieBackend::new(SESSION_SECRET.clone())));
     chain.link_after(error::ErrorReporter);
     chain.link_after(hbse);
     chain.link_after(logger_after);
 
     thread::spawn(move || {
         Iron::new(chain)
-            .http(web_listen)
+            .http(WEB_LISTEN.clone())
             .unwrap();
     });
 

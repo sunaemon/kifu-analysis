@@ -28,6 +28,8 @@ url = "*"
 rustc-serialize = "^0.3.16"
 regex = "*"
 
+lazy_static = "*"
+
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
 

@@ -825,6 +825,7 @@ dependencies = [
  "iron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-sessionstorage 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.11.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "logger 0.3.0 (git+https://github.com/iron/logger.git)",
  "mount 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",

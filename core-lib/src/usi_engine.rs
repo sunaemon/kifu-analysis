@@ -4,6 +4,7 @@ use types::*;
 use super::parser;
 use super::encoder;
 use std::env;
+use std::time::{Duration, Instant};
 
 pub struct UsiEngine {
     process: Popen,
@@ -15,7 +16,7 @@ impl UsiEngine {
         work_dir.push("Gikou/bin");
         let script = format!("cd {}; ./release", work_dir.to_str().unwrap());
 
-        info!("run {}", script);
+        debug!("run {}", script);
 
         UsiEngine {
             process: Popen::create(&["/bin/bash", "-c", &script],
@@ -29,10 +30,17 @@ impl UsiEngine {
         }
     }
 
-    pub fn get_score(&self, pos: &Position, moves: &[Move], max_depth: u64) -> parser::usi::Score {
+    pub fn get_score(&self,
+                     pos: &Position,
+                     moves: &[Move],
+                     max_depth: u64,
+                     max_time: Duration)
+                     -> parser::usi::Score {
         let mut stdin_ref = self.process.stdin.as_ref().unwrap();
         let mut stdout_ref = self.process.stdout.as_ref().unwrap();
         //let mut stderr_ref = p.stderr.as_ref().unwrap();
+
+        let start = Instant::now();
 
         stdin_ref.write_all(b"isready\n").unwrap();
 
@@ -42,6 +50,8 @@ impl UsiEngine {
             if let parser::usi::Response::ReadyOk = r {
                 let pos_string = encoder::usi::position(pos, moves);
                 let pos = pos_string.as_bytes();
+
+                info!("ready ok at: {:?}", start.elapsed());
 
                 stdin_ref.write(pos).unwrap();
                 stdin_ref.write_all(b"\ngo\n").unwrap();
@@ -54,10 +64,12 @@ impl UsiEngine {
                     }
                 }
 
-                if last_depth >= max_depth {
+                if last_depth >= max_depth || start.elapsed() > max_time {
+                    info!("stop at: {:?}", start.elapsed());
                     stdin_ref.write_all(b"stop\n").unwrap();
                 }
             } else if let parser::usi::Response::BestMove(_) = r {
+                info!("best move at: {:?}", start.elapsed());
                 return Some((last_score.clone()));
             }
             None
