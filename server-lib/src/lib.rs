@@ -41,28 +41,22 @@ mod kifu;
 mod scraping;
 
 use std::path::Path;
-use std::error::Error;
-use std::fmt;
+use std::thread;
+use std::env;
 
 use logger::Logger;
 
 use iron::prelude::*;
-use iron::prelude::IronResult;
 use iron::status;
 use staticfile::Static;
 use mount::Mount;
 use router::Router;
 
-use handlebars_iron::{HandlebarsEngine, DirectorySource};
-
-use std::thread;
-use std::env;
-
 use iron_sessionstorage::traits::*;
 use iron_sessionstorage::SessionStorage;
 use iron_sessionstorage::backends::SignedCookieBackend;
-use handlebars_iron::Template;
 
+use handlebars_iron::{HandlebarsEngine, DirectorySource, Template};
 
 lazy_static! {
   static ref SESSION_SECRET: Vec<u8> = env::var("SESSION_SECRET")

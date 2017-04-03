@@ -1,5 +1,5 @@
-use types::*;
 use std::fmt::Write;
+use types::*;
 
 pub fn color(c: Color) -> String {
     match c {

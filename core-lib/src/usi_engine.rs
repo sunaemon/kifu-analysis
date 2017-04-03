@@ -1,10 +1,12 @@
 use std::io::Write;
-use subprocess::*;
-use types::*;
-use super::parser;
-use super::encoder;
 use std::env;
 use std::time::{Duration, Instant};
+
+use subprocess::*;
+
+use super::parser;
+use super::encoder;
+use types::*;
 
 pub struct UsiEngine {
     process: Popen,

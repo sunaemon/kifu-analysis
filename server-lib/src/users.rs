@@ -1,8 +1,10 @@
-use iron::prelude::*;
-use iron::status;
-use iron::modifiers::Redirect;
+use std::error::Error;
+use std::fmt;
 
 use iron;
+use iron::prelude::*;
+use iron::status;
+use iron::modifiers;
 
 use router::Router;
 use handlebars_iron::Template;
@@ -14,10 +16,6 @@ use urlencoded::UrlEncodedBody;
 
 use database_lib;
 use url;
-use super::scraping;
-
-use std::error::Error;
-use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 struct AuthentificationError {
@@ -35,7 +33,6 @@ impl Error for AuthentificationError {
         &self.message
     }
 }
-
 
 pub struct Login {
     pub email: String,
@@ -105,7 +102,7 @@ fn render_signup(_req: &mut Request) -> IronResult<Response> {
 fn render_login(req: &mut Request) -> IronResult<Response> {
     if login_username(req).is_some() {
         // Already logged in
-        return Ok(Response::with((status::Found, Redirect(root(&req.url)))));
+        return Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))));
     }
 
     let mut resp = Response::new();
@@ -125,7 +122,7 @@ fn signup(req: &mut Request) -> IronResult<Response> {
         itry!(d.create_user(&email, &password));
     }
 
-    Ok(Response::with((status::Found, Redirect(root(&req.url)))))
+    Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
 }
 
 fn login(req: &mut Request) -> IronResult<Response> {
@@ -143,10 +140,10 @@ fn login(req: &mut Request) -> IronResult<Response> {
     };
 
     req.session().set(Login { email: email })?;
-    Ok(Response::with((status::Found, Redirect(root(&req.url)))))
+    Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
 }
 
 fn logout(req: &mut Request) -> IronResult<Response> {
     req.session().set(Login { email: "".to_string() })?;
-    Ok(Response::with((status::Found, Redirect(root(&req.url)))))
+    Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
 }

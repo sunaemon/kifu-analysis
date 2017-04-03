@@ -5,11 +5,10 @@ use std::fmt;
 
 use regex::bytes::Regex;
 
-use hyper::{self, Client};
+use hyper::{self, Client, Url};
 use hyper::net::HttpsConnector;
-use hyper_native_tls::NativeTlsClient;
-use hyper::Url;
 use hyper::client::IntoUrl;
+use hyper_native_tls::NativeTlsClient;
 
 #[derive(Debug, Clone, PartialEq)]
 struct ScrapingError {

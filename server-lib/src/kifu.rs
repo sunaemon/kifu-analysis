@@ -4,25 +4,26 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex, Condvar};
 use std::time::Duration;
 
+use rustc_serialize::json;
+
+use iron::prelude::*;
+use iron::status;
+use iron::modifiers::Redirect;
 use router::Router;
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use hyper::header::ContentType;
+use handlebars_iron::Template;
+
 use core_lib::parser;
 use core_lib::parser::usi::Score;
 use core_lib::encoder;
 use core_lib::usi_engine;
 use core_lib::types::*;
 
-use iron::prelude::*;
-use iron::status;
-use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
-use hyper::header::ContentType;
-use handlebars_iron::Template;
-use iron::modifiers::Redirect;
-
 use ws;
 use database_lib;
 use super::scraping;
 use super::users;
-use rustc_serialize::json;
 
 lazy_static! {
   static ref WEBSOCKET_LISTEN: String = env::var("WEBSOCKET_LISTEN").expect("WEBSOCKET_LISTEN must be set").to_string();

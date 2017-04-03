@@ -1,9 +1,10 @@
+use std::error::Error;
+use std::fmt;
+
 use iron::prelude::*;
 use iron::{status, AfterMiddleware};
 
 use handlebars_iron::Template;
-use std::error::Error;
-use std::fmt;
 
 pub struct ErrorReporter;
 
