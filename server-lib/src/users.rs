@@ -119,7 +119,7 @@ fn signup(req: &mut Request) -> IronResult<Response> {
 
         let d = database_lib::Database::new();
 
-        itry!(d.create_user(&email, &password));
+        iwtry!(d.create_user(&email, &password));
     }
 
     Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
@@ -134,7 +134,7 @@ fn login(req: &mut Request) -> IronResult<Response> {
 
         let d = database_lib::Database::new();
 
-        itry!(d.verify_user(&email, &password));
+        iwtry!(d.verify_user(&email, &password));
 
         email
     };

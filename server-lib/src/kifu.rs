@@ -240,7 +240,7 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
     let uid = format!("shougiwars:{}", game);
 
     let k = {
-        if let Some(k) = d.find_kifu_from_uid(&uid) {
+        if let Some(k) = iwtry!(d.find_kifu_from_uid(&uid)) {
             info!("i know {}", uid);
             k
         } else {
