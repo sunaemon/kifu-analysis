@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::fmt;
 
 use iron;
 use iron::prelude::*;
@@ -18,23 +17,6 @@ use database_lib;
 use url;
 
 use super::error::make_it_ironerror;
-
-#[derive(Debug, Clone, PartialEq)]
-struct AuthentificationError {
-    message: String,
-}
-
-impl fmt::Display for AuthentificationError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.message.fmt(f)
-    }
-}
-
-impl Error for AuthentificationError {
-    fn description(&self) -> &str {
-        &self.message
-    }
-}
 
 pub struct Login {
     pub email: String,
@@ -83,8 +65,7 @@ pub fn login_username(req: &mut Request) -> Option<Login> {
 pub fn login_user(d: &database_lib::Database,
                   req: &mut Request)
                   -> Result<database_lib::models::User, Box<Error>> {
-    let login =
-        login_username(req).ok_or(AuthentificationError { message: "No Session".to_string() })?;
+    let login = login_username(req).ok_or("No Session".to_string())?;
 
     Ok(d.get_user(&login.email)?)
 }
