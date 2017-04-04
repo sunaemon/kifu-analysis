@@ -39,6 +39,7 @@ mod error;
 mod users;
 mod kifu;
 mod scraping;
+mod websocket;
 
 use std::path::Path;
 use std::thread;
@@ -114,5 +115,5 @@ pub fn start_servers() {
             .unwrap();
     });
 
-    kifu::start_websock_server();
+    websocket::start_websock_server();
 }
