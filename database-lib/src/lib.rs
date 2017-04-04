@@ -11,28 +11,33 @@ extern crate dotenv;
 pub mod schema;
 pub mod models;
 
+use std::error::Error;
+use std::env;
+use std::fmt;
+use std::time::SystemTime;
+
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
-use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer, UserKifu, NewUserKifu};
 use rand::{Rng, OsRng};
 
 use crypto::hmac::Hmac;
 use crypto::sha2::Sha256;
 
-use std::error::Error;
-use std::env;
-use std::fmt;
-
+use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer, UserKifu, NewUserKifu};
 use schema::{users, kifu, gamers, users_kifu};
-use std::time::SystemTime;
+
+lazy_static! {
+  static ref DATABASE_URL: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set").to_string();
+}
 
 pub struct Database {
     pub conn: PgConnection,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct DatabaseError {
     message: String,
+    cause: Option<Box<Error>>,
 }
 
 impl fmt::Display for DatabaseError {
@@ -47,11 +52,20 @@ impl Error for DatabaseError {
     }
 }
 
+impl From<diesel::result::Error> for DatabaseError {
+    fn from(data: diesel::result::Error) -> DatabaseError {
+        DatabaseError {
+            message: data.description().to_string(),
+            cause: Some(Box::new(data)),
+        }
+    }
+}
+
 impl Database {
     pub fn new() -> Database {
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let conn = PgConnection::establish(&database_url)
-            .expect(&format!("Error connecting to {}", database_url));
+        // TODO: use connection pool
+        let conn = PgConnection::establish(&DATABASE_URL)
+            .expect(&format!("Error connecting to {}", *DATABASE_URL));
         Database { conn: conn }
     }
 
@@ -70,13 +84,8 @@ impl Database {
             active: true,
         };
 
-        match diesel::insert(&new_user)
-            .into(users::table)
-            .get_result(&self.conn) {
-            Ok(user) => Ok(user),
-            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
-        }
-
+        Ok(diesel::insert(&new_user).into(users::table)
+            .get_result(&self.conn)?)
     }
 
     pub fn verify_user(&self, email: &str, password: &str) -> Result<(), DatabaseError> {
@@ -87,7 +96,10 @@ impl Database {
         crypto::pbkdf2::pbkdf2(&mut mac, &user.salt, 1000, &mut hash);
 
         if &user.hash[..] != &hash[..] {
-            return Err(DatabaseError { message: "Wrong Password".to_string() });
+            return Err(DatabaseError {
+                message: "Wrong Password".to_string(),
+                cause: None,
+            });
         }
 
         Ok(())
@@ -95,11 +107,13 @@ impl Database {
 
     pub fn get_user(&self, email: &str) -> Result<User, DatabaseError> {
         let us = users::table.filter(users::email.eq(email))
-            .load::<User>(&self.conn)
-            .expect("error loading user");
+            .load::<User>(&self.conn)?;
 
         if us.len() == 0 {
-            return Err(DatabaseError { message: "No such user".to_string() });
+            return Err(DatabaseError {
+                message: "No such user".to_string(),
+                cause: None,
+            });
         } else if us.len() > 1 {
             panic!("Unique validation goes wrong!! users: {:?}", us);
         }
@@ -109,11 +123,13 @@ impl Database {
 
     pub fn get_kifu(&self, id: i32) -> Result<Kifu, DatabaseError> {
         let ks = kifu::table.filter(kifu::id.eq(id))
-            .load::<Kifu>(&self.conn)
-            .expect("error loading user");
+            .load::<Kifu>(&self.conn)?;
 
         if ks.len() == 0 {
-            return Err(DatabaseError { message: "No such kifu".to_string() });
+            return Err(DatabaseError {
+                message: "No such kifu".to_string(),
+                cause: None,
+            });
         } else if ks.len() > 1 {
             panic!("Unique validation goes wrong!! users: {:?}", ks);
         }
@@ -124,8 +140,7 @@ impl Database {
     pub fn own_kifu(&self, user: &User, kifu: &Kifu) -> Result<(), DatabaseError> {
         let uks = users_kifu::table.filter(users_kifu::user_id.eq(user.id))
             .filter(users_kifu::kifu_id.eq(kifu.id))
-            .load::<UserKifu>(&self.conn)
-            .expect("error loading user");
+            .load::<UserKifu>(&self.conn)?;
         if uks.len() > 1 {
             panic!("Unique validation goes wrong!! users_kifu: {:?}", uks);
         } else if uks.len() == 1 {
@@ -141,15 +156,19 @@ impl Database {
             .into(users_kifu::table)
             .get_result::<UserKifu>(&self.conn) {
             Ok(_) => Ok(()),
-            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
+            Err(e) => {
+                Err(DatabaseError {
+                    message: e.description().to_string(),
+                    cause: None,
+                })
+            }
         }
     }
 
     pub fn list_kifu(&self, user: &User) -> Result<Vec<Kifu>, DatabaseError> {
         let us: Vec<(Kifu, UserKifu)> = kifu::table.inner_join(users_kifu::table)
             .filter(users_kifu::user_id.eq(user.id))
-            .load(&self.conn)
-            .expect("error loading kifu");
+            .load(&self.conn)?;
         let mut ks = Vec::new();
         for (k, _) in us {
             ks.push(k);
@@ -167,15 +186,19 @@ impl Database {
             .into(gamers::table)
             .get_result(&self.conn) {
             Ok(gamer) => Ok(gamer),
-            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
+            Err(e) => {
+                Err(DatabaseError {
+                    message: e.description().to_string(),
+                    cause: None,
+                })
+            }
         }
     }
 
     pub fn create_or_find_gamer(&self, name: &str, service: &str) -> Result<Gamer, DatabaseError> {
         let gs = gamers::table.filter(gamers::name.eq(name))
             .filter(gamers::service.eq(service))
-            .load::<Gamer>(&self.conn)
-            .expect("error loading user");
+            .load::<Gamer>(&self.conn)?;
         if gs.len() > 1 {
             panic!("Unique validation goes wrong!! gamers: {:?}", gs);
         }
@@ -187,19 +210,18 @@ impl Database {
         }
     }
 
-    pub fn find_kifu_from_uid(&self, original_uid: &str) -> Option<Kifu> {
+    pub fn find_kifu_from_uid(&self, original_uid: &str) -> Result<Option<Kifu>, DatabaseError> {
         let ks = kifu::table.filter(kifu::original_uid.eq(original_uid))
-            .load::<Kifu>(&self.conn)
-            .expect("error loading user");
+            .load::<Kifu>(&self.conn)?;
 
         if ks.len() > 1 {
             panic!("Unique validation goes wrong!! kifu: {:?}", ks);
         }
 
         if ks.len() == 1 {
-            Some(ks[0].clone())
+            Ok(Some(ks[0].clone()))
         } else {
-            None
+            Ok(None)
         }
     }
 
@@ -211,7 +233,7 @@ impl Database {
                        original_uid: Option<&str>)
                        -> Result<Kifu, DatabaseError> {
         if let Some(original_uid) = original_uid {
-            if let Some(kifu) = self.find_kifu_from_uid(original_uid) {
+            if let Some(kifu) = self.find_kifu_from_uid(original_uid)? {
                 return Ok(kifu);
             }
         }
@@ -227,7 +249,12 @@ impl Database {
             .into(kifu::table)
             .get_result(&self.conn) {
             Ok(kifu) => Ok(kifu),
-            Err(e) => Err(DatabaseError { message: e.description().to_string() }),
+            Err(e) => {
+                Err(DatabaseError {
+                    message: e.description().to_string(),
+                    cause: None,
+                })
+            }
         }
     }
 }
