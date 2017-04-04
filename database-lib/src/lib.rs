@@ -60,6 +60,14 @@ impl From<diesel::result::Error> for DatabaseError {
         }
     }
 }
+impl From<std::io::Error> for DatabaseError {
+    fn from(data: std::io::Error) -> DatabaseError {
+        DatabaseError {
+            message: data.description().to_string(),
+            cause: Some(Box::new(data)),
+        }
+    }
+}
 
 impl Database {
     pub fn new() -> Database {
@@ -71,7 +79,7 @@ impl Database {
 
     pub fn create_user(&self, email: &str, password: &str) -> Result<User, DatabaseError> {
         let mut mac = Hmac::new(Sha256::new(), password.as_bytes());
-        let mut rng = OsRng::new().unwrap();
+        let mut rng = OsRng::new()?;
         let mut salt: [u8; 32] = [0; 32];
         let mut hash: [u8; 512] = [0; 512];
         rng.fill_bytes(&mut salt);

@@ -24,6 +24,7 @@ use ws;
 use database_lib;
 use super::scraping;
 use super::users;
+use std::error::Error;
 
 lazy_static! {
   static ref WEBSOCKET_LISTEN: String = env::var("WEBSOCKET_LISTEN").expect("WEBSOCKET_LISTEN must be set").to_string();
@@ -34,6 +35,10 @@ lazy_static! {
 struct ScoreWithNum {
     n: usize,
     score: Score,
+}
+
+fn to_ws_err<T: Error>(e: T) -> ws::Error {
+    ws::Error::new(ws::ErrorKind::Internal, e.description().to_owned())
 }
 
 pub fn start_websock_server() {
@@ -74,8 +79,9 @@ pub fn start_websock_server() {
 
             move |msg| {
                 if let ws::Message::Text(msg) = msg {
-                    println!("Got message: {}", msg);
-                    let id = i32::from_str(&msg).unwrap();
+                    debug!("Got message: {}", msg);
+                    let id = i32::from_str(&msg).map_err(to_ws_err)?;
+
                     let &(ref kifu_id, ref kifu_id_updated) = &*kifu_id_recv;
                     let mut kifu_id = kifu_id.lock().unwrap();
                     *kifu_id = Some(id);
@@ -110,7 +116,9 @@ impl KifuRoute {
 }
 
 fn show(req: &mut Request) -> IronResult<Response> {
-    let id = i32::from_str(req.extensions.get::<Router>().unwrap().find("id").unwrap()).unwrap();
+    let router_ext = iexpect!(req.extensions.get::<Router>());
+    let id = iexpect!(router_ext.find("id"));
+    let id = iwtry!(i32::from_str(id));
     use rustc_serialize::json::{ToJson, Object};
     let mut data = Object::new();
 
@@ -123,9 +131,13 @@ fn show(req: &mut Request) -> IronResult<Response> {
 }
 
 fn own(req: &mut Request) -> IronResult<Response> {
-    let id = i32::from_str(req.extensions.get::<Router>().unwrap().find("id").unwrap()).unwrap();
+    let id = {
+        let router_ext = iexpect!(req.extensions.get::<Router>());
+        let id = iexpect!(router_ext.find("id"));
+        iwtry!(i32::from_str(id))
+    };
     let mut d = database_lib::Database::new();
-    let u = users::login_user(&mut d, req).unwrap();
+    let u = iwtry!(users::login_user(&mut d, req));
     let k = d.get_kifu(id).unwrap();
     d.own_kifu(&u, &k).unwrap();
     Ok(Response::with((status::Found,
@@ -142,12 +154,12 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
     use rustc_serialize::json::{ToJson, Object, Array};
 
     let mut d = database_lib::Database::new();
-    let u = users::login_user(&mut d, req).unwrap();
+    let u = iwtry!(users::login_user(&mut d, req));
 
     let mut data = Object::new();
     let mut kifu_data = Array::new();
 
-    for kifu in d.list_kifu(&u).unwrap() {
+    for kifu in iwtry!(d.list_kifu(&u)) {
         let mut k = Object::new();
         let url = url_for!(req, "kifu_show", "id" => kifu.id.to_string());
         k.insert("url".to_string(), url.to_string().to_json());
@@ -164,7 +176,8 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
 }
 
 fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
-    let user = req.extensions.get::<Router>().unwrap().find("user").unwrap();
+    let router_ext = iexpect!(req.extensions.get::<Router>());
+    let user = iexpect!(router_ext.find("user"));
 
     use rustc_serialize::json::{ToJson, Object, Array};
     let mut data = Object::new();
@@ -195,7 +208,7 @@ struct Movement {
     position: Position,
 }
 
-fn get_moves(g: &Game) -> Vec<Movement> {
+fn get_moves(g: &Game) -> Result<Vec<Movement>, MoveError> {
     let mut p = Position::hirate();
     let mut kifu = Vec::new();
     kifu.push(Movement {
@@ -204,7 +217,7 @@ fn get_moves(g: &Game) -> Vec<Movement> {
         position: p.clone(),
     });
     for m in g.moves.iter() {
-        p.make_move(m).unwrap();
+        p.make_move(m)?;
         kifu.push(Movement {
             movement: Some(m.clone()),
             movestr: Some(encoder::japanese::enc_move(m)),
@@ -212,7 +225,7 @@ fn get_moves(g: &Game) -> Vec<Movement> {
         });
     }
 
-    kifu
+    Ok(kifu)
 }
 
 fn show_moves(req: &mut Request) -> IronResult<Response> {
@@ -223,7 +236,7 @@ fn show_moves(req: &mut Request) -> IronResult<Response> {
     let d = database_lib::Database::new();
     let k = iwtry!(d.get_kifu(id));
     let g = json::decode::<Game>(&k.data).unwrap();
-    let moves = get_moves(&g);
+    let moves = iwtry!(get_moves(&g));
 
     let mut resp = Response::with((status::Ok, json::encode(&moves).unwrap()));
     resp.headers.set(ContentType(Mime(TopLevel::Application,
@@ -250,7 +263,6 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
             iwtry!(d.create_kifu(&iwtry!(json::encode(&g)), None, None, None, Some(&uid)))
         }
     };
-
 
     use rustc_serialize::json::{ToJson, Object};
     let mut data = Object::new();
