@@ -108,7 +108,9 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
 
 fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
-    let user = iexpect!(router_ext.find("user"));
+    let user = router_ext.find("user")
+        .ok_or("parameter user not found".to_string())
+        .map_err(make_it_ironerror)?;
 
     use rustc_serialize::json::{ToJson, Object, Array};
     let mut data = Object::new();
