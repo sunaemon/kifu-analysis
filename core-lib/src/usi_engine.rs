@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn it_works() {
         let en = UsiEngine::new();
-        let score = en.get_score(&Position::hirate(), &[], 10);
+        let score = en.get_score(&Position::hirate(), &[], 10, Duration::from_secs(3));
         match score {
             parser::usi::Score::Mate(_) => panic!(),
             parser::usi::Score::Cp(p) => assert!(p > 0 && p < 200),

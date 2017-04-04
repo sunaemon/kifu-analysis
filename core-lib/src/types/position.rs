@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::fmt;
-use std::error::Error;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Color {
@@ -360,7 +359,7 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(json::encode(&Board::hirate()).unwrap(),
-                   "{\"data\":[[[\"White\",\"Lance\"],[\"White\",\"Knight\"],[\"White\",\
+                   "{\"inner\":[[[\"White\",\"Lance\"],[\"White\",\"Knight\"],[\"White\",\
                     \"Silver\"],[\"White\",\"Gold\"],[\"White\",\"King\"],[\"White\",\"Gold\"],\
                     [\"White\",\"Silver\"],[\"White\",\"Knight\"],[\"White\",\"Lance\"]],[null,\
                     [\"White\",\"Bishop\"],null,null,null,null,null,[\"White\",\"Rook\"],null],\
