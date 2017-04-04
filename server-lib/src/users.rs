@@ -55,11 +55,14 @@ impl iron_sessionstorage::Value for Login {
 }
 
 pub fn login_username(req: &mut Request) -> Option<Login> {
-    if let Ok(Some(l)) = req.session().get::<Login>() {
-        if l.email != "" { Some(l) } else { None }
-    } else {
-        None
+    if let Ok(l) = req.session().get::<Login>() {
+        if let Some(ll) = l {
+            return if ll.email != "" { Some(ll) } else { None };
+            //l
+        }
     }
+
+    None
 }
 
 pub fn login_user(d: &database_lib::Database,
@@ -131,6 +134,7 @@ fn login(req: &mut Request) -> IronResult<Response> {
 
 fn logout(req: &mut Request) -> IronResult<Response> {
     req.session().set(Login { email: "".to_string() })?;
+    //req.session().clear()?;
     let root = root(&req.url).map_err(make_it_ironerror)?;
     Ok(Response::with((status::Found, modifiers::Redirect(root))))
 }
