@@ -17,6 +17,8 @@ use urlencoded::UrlEncodedBody;
 use database_lib;
 use url;
 
+use super::error::make_it_ironerror;
+
 #[derive(Debug, Clone, PartialEq)]
 struct AuthentificationError {
     message: String,
@@ -87,10 +89,10 @@ pub fn login_user(d: &database_lib::Database,
     Ok(d.get_user(&login.email)?)
 }
 
-fn root(url: &iron::Url) -> iron::Url {
+fn root(url: &iron::Url) -> Result<iron::Url, Box<Error>> {
     let mut url = <iron::Url as Into<url::Url>>::into(url.clone());
     url.set_path("/");
-    iron::Url::from_generic_url(url).unwrap()
+    Ok(iron::Url::from_generic_url(url)?)
 }
 
 fn render_signup(_req: &mut Request) -> IronResult<Response> {
@@ -102,7 +104,8 @@ fn render_signup(_req: &mut Request) -> IronResult<Response> {
 fn render_login(req: &mut Request) -> IronResult<Response> {
     if login_username(req).is_some() {
         // Already logged in
-        return Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))));
+        let root = root(&req.url).map_err(make_it_ironerror)?;
+        return Ok(Response::with((status::Found, modifiers::Redirect(root))));
     }
 
     let mut resp = Response::new();
@@ -119,10 +122,11 @@ fn signup(req: &mut Request) -> IronResult<Response> {
 
         let d = database_lib::Database::new();
 
-        iwtry!(d.create_user(&email, &password));
+        d.create_user(&email, &password).map_err(make_it_ironerror)?;
     }
 
-    Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
+    let root = root(&req.url).map_err(make_it_ironerror)?;
+    Ok(Response::with((status::Found, modifiers::Redirect(root))))
 }
 
 fn login(req: &mut Request) -> IronResult<Response> {
@@ -134,16 +138,18 @@ fn login(req: &mut Request) -> IronResult<Response> {
 
         let d = database_lib::Database::new();
 
-        iwtry!(d.verify_user(&email, &password));
+        d.assume_user(&email, &password).map_err(make_it_ironerror)?;
 
         email
     };
 
     req.session().set(Login { email: email })?;
-    Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
+    let root = root(&req.url).map_err(make_it_ironerror)?;
+    Ok(Response::with((status::Found, modifiers::Redirect(root))))
 }
 
 fn logout(req: &mut Request) -> IronResult<Response> {
     req.session().set(Login { email: "".to_string() })?;
-    Ok(Response::with((status::Found, modifiers::Redirect(root(&req.url)))))
+    let root = root(&req.url).map_err(make_it_ironerror)?;
+    Ok(Response::with((status::Found, modifiers::Redirect(root))))
 }

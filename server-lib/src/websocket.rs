@@ -88,12 +88,13 @@ impl Handler {
                 if *data.to_terminate.lock().unwrap() {
                     return;
                 }
+                let score = en.get_score(&g.position,
+                                         &g.moves[0..n],
+                                         max_depth as u64,
+                                         Duration::from_secs(3));
                 let s = ScoreWithNum {
                     n: n,
-                    score: en.get_score(&g.position,
-                                        &g.moves[0..n],
-                                        max_depth as u64,
-                                        Duration::from_secs(3)),
+                    score: score,
                 };
                 let dat_to_send = json::encode(&s).unwrap();
 

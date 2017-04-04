@@ -96,7 +96,7 @@ impl Database {
             .get_result(&self.conn)?)
     }
 
-    pub fn verify_user(&self, email: &str, password: &str) -> Result<(), DatabaseError> {
+    pub fn assume_user(&self, email: &str, password: &str) -> Result<(), DatabaseError> {
         let user = self.get_user(email)?;
 
         let mut hash: [u8; 512] = [0; 512];

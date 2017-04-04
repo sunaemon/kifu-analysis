@@ -24,19 +24,9 @@ impl AfterMiddleware for ErrorReporter {
 }
 
 pub struct IronErrorWrapper {
-    message: String,
-    debug_message: String,
-    description: String,
-}
-
-impl IronErrorWrapper {
-    pub fn new(b: Box<Error>) -> IronErrorWrapper {
-        IronErrorWrapper {
-            message: format!("{}", b),
-            debug_message: format!("{:?}", b),
-            description: b.description().to_string(),
-        }
-    }
+    pub message: String,
+    pub debug_message: String,
+    pub description: String,
 }
 
 impl fmt::Display for IronErrorWrapper {
@@ -60,13 +50,12 @@ impl Error for IronErrorWrapper {
     }
 }
 
-#[macro_export]
-macro_rules! iwtry {
-    ($result:expr) => (iwtry!($result, $crate::status::InternalServerError));
-
-    ($result:expr, $modifier:expr) => (match $result {
-        ::std::result::Result::Ok(val) => val,
-        ::std::result::Result::Err(err) => return ::std::result::Result::Err(
-            IronError::new($crate::error::IronErrorWrapper::new(::std::convert::From::from(err)), $modifier))
-    })
+pub fn make_it_ironerror<T: Into<Box<Error>>>(ee: T) -> IronError {
+    let e = ee.into();
+    IronError::new(IronErrorWrapper {
+                       message: format!("{}", e),
+                       debug_message: format!("{:?}", e),
+                       description: e.description().to_string(),
+                   },
+                   status::InternalServerError)
 }

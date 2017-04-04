@@ -1,4 +1,5 @@
 use nom::{IError, digit};
+use super::ParseError;
 use types::*;
 
 named!(digit_as_u8<&[u8], u8>,
@@ -124,14 +125,12 @@ fn parse_primitive(s: &[u8]) -> Result<Vec<Step>, IError<u32>> {
     parse_kifu_primitive(s).to_full_result()
 }
 
-pub fn parse(s: &[u8]) -> Result<Game, String> {
+pub fn parse(s: &[u8]) -> Result<Game, ParseError> {
     let mut g = Game::hirate();
     let mut p = g.position.clone();
-    for s in try!(parse_primitive(s).or(Err("Parse Error"))) {
+    for s in try!(parse_primitive(s).or(Err(ParseError::new("Parse Error")))) {
         match s {
             Step::Move(pm) => {
-                //                println!("{:?}", ::encoder::usi::sfen(&p));
-                //                println!("{:?}", pm);
                 let m = pm.primive_move_to_move(&p);
                 g.moves.push(m);
                 p.make_move(&m).unwrap();

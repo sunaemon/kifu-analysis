@@ -18,6 +18,7 @@ use core_lib::types::*;
 use database_lib;
 use super::scraping;
 use super::users;
+use super::error::make_it_ironerror;
 
 lazy_static! {
   static ref WEBSOCKET_URL: String = env::var("WEBSOCKET_URL").expect("WEBSOCKET_URL must be set").to_string();
@@ -48,7 +49,7 @@ impl KifuRoute {
 fn show(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let id = iexpect!(router_ext.find("id"));
-    let id = iwtry!(i32::from_str(id));
+    let id = i32::from_str(id).map_err(make_it_ironerror)?;
     use rustc_serialize::json::{ToJson, Object};
     let mut data = Object::new();
 
@@ -64,10 +65,10 @@ fn own(req: &mut Request) -> IronResult<Response> {
     let id = {
         let router_ext = iexpect!(req.extensions.get::<Router>());
         let id = iexpect!(router_ext.find("id"));
-        iwtry!(i32::from_str(id))
+        i32::from_str(id).map_err(make_it_ironerror)?
     };
     let mut d = database_lib::Database::new();
-    let u = iwtry!(users::login_user(&mut d, req));
+    let u = users::login_user(&mut d, req).map_err(make_it_ironerror)?;
     let k = d.get_kifu(id).unwrap();
     d.own_kifu(&u, &k).unwrap();
     Ok(Response::with((status::Found,
@@ -84,12 +85,12 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
     use rustc_serialize::json::{ToJson, Object, Array};
 
     let mut d = database_lib::Database::new();
-    let u = iwtry!(users::login_user(&mut d, req));
+    let u = users::login_user(&mut d, req).map_err(make_it_ironerror)?;
 
     let mut data = Object::new();
     let mut kifu_data = Array::new();
 
-    for kifu in iwtry!(d.list_kifu(&u)) {
+    for kifu in d.list_kifu(&u).map_err(make_it_ironerror)? {
         let mut k = Object::new();
         let url = url_for!(req, "kifu_show", "id" => kifu.id.to_string());
         k.insert("url".to_string(), url.to_string().to_json());
@@ -112,7 +113,7 @@ fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
     use rustc_serialize::json::{ToJson, Object, Array};
     let mut data = Object::new();
 
-    let game_names = iwtry!(scraping::get_shougiwars_history(&user, 0));
+    let game_names = scraping::get_shougiwars_history(&user, 0).map_err(make_it_ironerror)?;
     let mut games: Array = Array::new();
     for game_name in game_names {
         let mut game: Object = Object::new();
@@ -161,12 +162,12 @@ fn get_moves(g: &Game) -> Result<Vec<Movement>, MoveError> {
 fn show_moves(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let id = iexpect!(router_ext.find("id"));
-    let id = iwtry!(i32::from_str(id));
+    let id = i32::from_str(id).map_err(make_it_ironerror)?;
 
     let d = database_lib::Database::new();
-    let k = iwtry!(d.get_kifu(id));
+    let k = d.get_kifu(id).map_err(make_it_ironerror)?;
     let g = json::decode::<Game>(&k.data).unwrap();
-    let moves = iwtry!(get_moves(&g));
+    let moves = get_moves(&g).map_err(make_it_ironerror)?;
 
     let mut resp = Response::with((status::Ok, json::encode(&moves).unwrap()));
     resp.headers.set(ContentType(Mime(TopLevel::Application,
@@ -183,14 +184,16 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
     let uid = format!("shougiwars:{}", game);
 
     let k = {
-        if let Some(k) = iwtry!(d.find_kifu_from_uid(&uid)) {
+        if let Some(k) = d.find_kifu_from_uid(&uid).map_err(make_it_ironerror)? {
             info!("i know {}", uid);
             k
         } else {
             info!("fetching {}", uid);
-            let kifu_data = iwtry!(scraping::get_shougiwars_game(game));
-            let g = iwtry!(parser::shougiwars::parse(kifu_data.as_bytes()));
-            iwtry!(d.create_kifu(&iwtry!(json::encode(&g)), None, None, None, Some(&uid)))
+            let kifu_data = scraping::get_shougiwars_game(game).map_err(make_it_ironerror)?;
+            let g = parser::shougiwars::parse(kifu_data.as_bytes()).map_err(make_it_ironerror)?;
+            let data = &json::encode(&g).map_err(make_it_ironerror)?;
+            d.create_kifu(data, None, None, None, Some(&uid))
+                .map_err(make_it_ironerror)?
         }
     };
 
