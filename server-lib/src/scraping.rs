@@ -1,7 +1,6 @@
 use std::io::Read;
 use std::error::Error;
 use std::str;
-use std::fmt;
 
 use regex::bytes::Regex;
 
@@ -9,23 +8,6 @@ use hyper::{self, Client, Url};
 use hyper::net::HttpsConnector;
 use hyper::client::IntoUrl;
 use hyper_native_tls::NativeTlsClient;
-
-#[derive(Debug, Clone, PartialEq)]
-struct ScrapingError {
-    message: String,
-}
-
-impl fmt::Display for ScrapingError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.message.fmt(f)
-    }
-}
-
-impl Error for ScrapingError {
-    fn description(&self) -> &str {
-        &self.message
-    }
-}
 
 fn read_https(url: Url) -> Result<Vec<u8>, Box<Error>> {
     let tls = NativeTlsClient::new()?;
@@ -35,7 +17,7 @@ fn read_https(url: Url) -> Result<Vec<u8>, Box<Error>> {
     let mut res = client.get(url).send()?;
 
     if res.status != hyper::Ok {
-        return Err(Box::new(ScrapingError { message: format!("{} is not ok", res.status) }));
+        return Err(format!("{} is not ok", res.status))?;
     }
 
     let mut buf = Vec::new();
@@ -71,7 +53,7 @@ pub fn scrape_shougiwars_game(s: &[u8]) -> Result<String, Box<Error>> {
     for cap in re.captures_iter(s) {
         return Ok(str::from_utf8(&cap[1])?.to_string());
     }
-    Err(Box::new(ScrapingError { message: "no match".to_string() }))
+    Err("no match".to_string())?
 }
 
 pub fn get_shougiwars_history(user: &str, start: u32) -> Result<Vec<String>, Box<Error>> {
