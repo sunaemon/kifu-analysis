@@ -141,7 +141,7 @@ struct Movement {
     position: Position,
 }
 
-fn get_moves(g: &Game) -> Result<Vec<Movement>, MoveError> {
+fn get_moves(g: &Game) -> Result<Vec<Movement>, String> {
     let mut p = Position::hirate();
     let mut kifu = Vec::new();
     kifu.push(Movement {

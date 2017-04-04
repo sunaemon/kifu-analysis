@@ -264,30 +264,6 @@ pub struct Position {
     color: Color,
 }
 
-#[derive(Debug)]
-pub struct MoveError {
-    message: String,
-}
-
-impl MoveError {
-    fn new(message: &str) -> MoveError {
-        MoveError { message: message.to_string() }
-    }
-}
-
-impl fmt::Display for MoveError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl Error for MoveError {
-    fn description(&self) -> &str {
-        &self.message
-    }
-}
-
-
 impl Position {
     #[allow(dead_code)]
     pub fn new(board: Board, captured: Captured, c: Color) -> Position {
@@ -315,29 +291,30 @@ impl Position {
     }
 
     /// positionが壊れない程度に正しいmoveか？
-    pub fn move_valid(&self, m: &Move) -> Result<(), MoveError> {
+    pub fn move_valid(&self, m: &Move) -> Result<(), String> {
         if m.color() != self.color() {
-            return Err(MoveError::new("color check failed"));
+            return Err("color check failed".to_string());
         }
 
 
         if let Some(p) = m.from() {
             if self.board()[p] != Some((m.color(), m.piece_before_move())) {
                 debug!("Board: {:?}", self.board());
-                return Err(MoveError::new(&format!("from check failed {:?}(at {:?} is not {:?}",
-                                                   self.board()[p],
-                                                   p,
-                                                   (m.color(), m.piece_before_move()))));
+                let message = format!("from check failed {:?}(at {:?} is not {:?}",
+                                      self.board()[p],
+                                      p,
+                                      (m.color(), m.piece_before_move()));
+                return Err(message);
             }
         } else {
             if !self.captured.has(m.color(), m.piece()) {
-                return Err(MoveError::new("drop check failed"));
+                return Err("drop check failed".to_string());
             }
         }
 
         Ok(())
     }
-    pub fn make_move(&mut self, m: &Move) -> Result<(), MoveError> {
+    pub fn make_move(&mut self, m: &Move) -> Result<(), String> {
         try!(self.move_valid(m));
 
         if let Some(from) = m.from() {
