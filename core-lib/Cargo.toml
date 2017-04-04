@@ -5,7 +5,6 @@ authors = ["sunaemon <@sunaemon0>"]
 
 [dependencies]
 nom = "^2.1"
-enum_primitive = "*"
 subprocess = "*"
 log = "*"
 env_logger = "*"
