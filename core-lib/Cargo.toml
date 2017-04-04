@@ -2,6 +2,7 @@
 name = "core-lib"
 version = "0.1.0"
 authors = ["sunaemon <@sunaemon0>"]
+workspace = ".."
 
 [dependencies]
 nom = "^2.1"

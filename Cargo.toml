@@ -8,3 +8,6 @@ dotenv = "*"
 
 [dependencies.server-lib]
 path = "server-lib"
+
+[workspace]
+members = ["server-lib", "database-lib", "core-lib" ]

@@ -1,9 +1,28 @@
 [root]
-name = "kifu_analysis"
+name = "server-lib"
 version = "0.1.0"
 dependencies = [
- "dotenv 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "server-lib 0.1.0",
+ "core-lib 0.1.0",
+ "database-lib 0.1.0",
+ "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars 0.25.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars-iron 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.10.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper-native-tls 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "iron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "iron-sessionstorage 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.11.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "logger 0.3.0 (git+https://github.com/iron/logger.git)",
+ "mount 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "router 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.23 (registry+https://github.com/rust-lang/crates.io-index)",
+ "staticfile 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "urlencoded 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ws 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -135,7 +154,6 @@ dependencies = [
 name = "core-lib"
 version = "0.1.0"
 dependencies = [
- "enum_primitive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "nom 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -240,14 +258,6 @@ dependencies = [
 name = "dtoa"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "enum_primitive"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "num-traits 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "env_logger"
@@ -426,6 +436,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "kifu_analysis"
+version = "0.1.0"
+dependencies = [
+ "dotenv 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "server-lib 0.1.0",
 ]
 
 [[package]]
@@ -812,33 +830,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "server-lib"
-version = "0.1.0"
-dependencies = [
- "core-lib 0.1.0",
- "database-lib 0.1.0",
- "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars 0.25.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars-iron 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hyper 0.10.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "hyper-native-tls 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron-sessionstorage 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.11.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "logger 0.3.0 (git+https://github.com/iron/logger.git)",
- "mount 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "router 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.3.23 (registry+https://github.com/rust-lang/crates.io-index)",
- "staticfile 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "urlencoded 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ws 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "sha1"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1117,7 +1108,6 @@ dependencies = [
 "checksum dotenv 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5f0b6bea196dc1effc0f5184ff71d4df7cc28b81ba81bcfb74b4c633d683ebda"
 "checksum dotenv 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "eea1395d2df3b5344dc577809296d9578303296e8d105c408aa80ed67d598ef1"
 "checksum dtoa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0dd841b58510c9618291ffa448da2e4e0f699d984d436122372f446dae62263d"
-"checksum enum_primitive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "be4551092f4d519593039259a9ed8daedf0da12e5109c5280338073eaeb81180"
 "checksum env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e3856f1697098606fc6cb97a93de88ca3f3bc35bb878c725920e6e82ecf05e83"
 "checksum error 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "a6e606f14042bb87cc02ef6a14db6c90ab92ed6f62d87e69377bc759fd7987cc"
 "checksum error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
