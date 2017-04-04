@@ -212,15 +212,12 @@ impl IndexMut<Point> for Board {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable)]
+#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable, Default)]
 pub struct Captured {
     inner: BTreeMap<Color, BTreeMap<Piece, u8>>,
 }
 
 impl Captured {
-    pub fn new() -> Captured {
-        Captured { inner: BTreeMap::new() }
-    }
     pub fn to_inner(&self) -> &BTreeMap<Color, BTreeMap<Piece, u8>> {
         &self.inner
     }
@@ -249,7 +246,7 @@ impl Captured {
         None
     }
     pub fn add(&mut self, c: Color, p: Piece) {
-        *self.inner.entry(c).or_insert(BTreeMap::new()).entry(p).or_insert(0) += 1
+        *self.inner.entry(c).or_insert_with(BTreeMap::new).entry(p).or_insert(0) += 1
     }
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
@@ -275,7 +272,7 @@ impl Position {
     pub fn hirate() -> Position {
         Position {
             board: Board::hirate(),
-            captured: Captured::new(),
+            captured: Captured::default(),
             color: Color::Black,
         }
     }
@@ -294,7 +291,6 @@ impl Position {
         if m.color() != self.color() {
             return Err("color check failed".to_string());
         }
-
 
         if let Some(p) = m.from() {
             if self.board()[p] != Some((m.color(), m.piece_before_move())) {

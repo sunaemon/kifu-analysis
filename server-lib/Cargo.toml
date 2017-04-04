@@ -31,6 +31,11 @@ regex = "*"
 
 lazy_static = "*"
 
+clippy = {version = "*", optional = true}
+
+[features]
+default = []
+
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
 

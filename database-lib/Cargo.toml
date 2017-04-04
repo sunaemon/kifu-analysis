@@ -13,3 +13,7 @@ rust-crypto = "^0.2"
 dotenv = "*"
 lazy_static = "*"
 
+clippy = {version = "*", optional = true}
+
+[features]
+default = []

@@ -5,6 +5,10 @@ authors = ["sunaemon <@sunaemon0>"]
 
 [dependencies]
 dotenv = "*"
+clippy = {version = "*", optional = true}
+
+[features]
+default = []
 
 [dependencies.server-lib]
 path = "server-lib"

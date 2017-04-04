@@ -55,7 +55,7 @@ impl UsiEngine {
 
                 info!("ready ok at: {:?}", start.elapsed());
 
-                stdin_ref.write(pos).unwrap();
+                stdin_ref.write_all(pos).unwrap();
                 stdin_ref.write_all(b"\ngo\n").unwrap();
             } else if let parser::usi::Response::Infos(infos) = r {
                 for info in infos {
@@ -72,7 +72,7 @@ impl UsiEngine {
                 }
             } else if let parser::usi::Response::BestMove(_) = r {
                 info!("best move at: {:?}", start.elapsed());
-                return Some((last_score.clone()));
+                return Some(last_score.clone());
             }
             None
         })

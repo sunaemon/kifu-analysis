@@ -10,3 +10,8 @@ subprocess = "*"
 log = "*"
 env_logger = "*"
 rustc-serialize = "^0.3.0"
+clippy = {version = "*", optional = true}
+
+[features]
+default = []
+

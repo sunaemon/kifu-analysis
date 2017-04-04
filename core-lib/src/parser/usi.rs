@@ -100,7 +100,7 @@ named!(board_line_parse(&[u8]) -> Vec<Option<(Color, Piece)>>,
 type VecBoard = Vec<Vec<Option<(Color, Piece)>>>;
 
 named!(board_parse_vec(&[u8]) -> VecBoard,
-       dbg!(many0!(board_line_parse)));
+       many0!(board_line_parse));
 
 
 fn vec_board_to_board(b: VecBoard) -> Option<Board> {
@@ -122,7 +122,7 @@ fn vec_board_to_board(b: VecBoard) -> Option<Board> {
     Some(Board::new(ret))
 }
 
-named_attr!(#[allow(dead_code)], board_parse<&[u8],Option<Board> >,
+named_attr!(#[allow(dead_code)], board_parse<&[u8], Option<Board>>,
        map!(board_parse_vec,
             vec_board_to_board));
 
