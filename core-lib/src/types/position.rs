@@ -21,7 +21,7 @@ impl Color {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, RustcDecodable, RustcEncodable)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub struct Point {
     /// 段
     pub x: u8,
@@ -38,12 +38,13 @@ impl Point {
         Point::new(x - 1, y - 1)
     }
 }
-
+/*
 impl fmt::Debug for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Point{{ {}{} }}", self.x + 1, self.y + 1)
     }
 }
+*/
 
 #[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub struct Move {

@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut captured = Captured::new();
+        let mut captured = Captured::default();
         assert_eq!(super::captured(&captured), "-");
 
         captured.add(Color::Black, Piece::Silver);
@@ -165,7 +165,9 @@ mod tests {
                        .unwrap()),
                    "P*7f");
 
-        assert_eq!(super::position(&Position::new(Board::hirate(), Captured::new(), Color::Black),
+        assert_eq!(super::position(&Position::new(Board::hirate(),
+                                                  Captured::default(),
+                                                  Color::Black),
                                    &vec![Move::new(Color::Black,
                                                    Some(Point::one_start(7, 7)),
                                                    Point::one_start(7, 6),

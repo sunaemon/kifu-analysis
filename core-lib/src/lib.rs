@@ -2,6 +2,9 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 #[macro_use]
+extern crate combine;
+
+#[macro_use]
 extern crate nom;
 
 #[macro_use]

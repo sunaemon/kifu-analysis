@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{Write, BufReader};
 use std::env;
 use std::time::{Duration, Instant};
 
@@ -37,7 +37,7 @@ impl UsiEngine {
                      moves: &[Move],
                      max_depth: u64,
                      max_time: Duration)
-                     -> parser::usi::Score {
+                     -> parser::usi_comobine::Score {
         let mut stdin_ref = self.process.stdin.as_ref().unwrap();
         let mut stdout_ref = self.process.stdout.as_ref().unwrap();
         //let mut stderr_ref = p.stderr.as_ref().unwrap();
@@ -47,21 +47,22 @@ impl UsiEngine {
         stdin_ref.write_all(b"isready\n").unwrap();
 
         let mut last_depth = 0;
-        let mut last_score = parser::usi::Score::Cp(0);
-        parser::usi::read_and_parse(&mut stdout_ref, |r| {
-            if let parser::usi::Response::ReadyOk = r {
+        let mut last_score = parser::usi_comobine::Score::Cp(0);
+
+        parser::usi_comobine::read_and_parse(&mut BufReader::new(stdout_ref), |r| {
+            if let parser::usi_comobine::Response::ReadyOk = r {
                 let pos_string = encoder::usi::position(pos, moves);
                 let pos = pos_string.as_bytes();
 
-                info!("ready ok at: {:?}", start.elapsed());
+                println!("ready ok at: {:?}", start.elapsed());
 
                 stdin_ref.write_all(pos).unwrap();
                 stdin_ref.write_all(b"\ngo\n").unwrap();
-            } else if let parser::usi::Response::Infos(infos) = r {
+            } else if let parser::usi_comobine::Response::Infos(infos) = r {
                 for info in infos {
-                    if let parser::usi::Info::Depth(d) = info {
+                    if let parser::usi_comobine::Info::Depth(d) = info {
                         last_depth = d;
-                    } else if let parser::usi::Info::Score(s) = info {
+                    } else if let parser::usi_comobine::Info::Score(s) = info {
                         last_score = s;
                     }
                 }
@@ -70,7 +71,7 @@ impl UsiEngine {
                     info!("stop at: {:?}", start.elapsed());
                     stdin_ref.write_all(b"stop\n").unwrap();
                 }
-            } else if let parser::usi::Response::BestMove(_) = r {
+            } else if let parser::usi_comobine::Response::BestMove(_) = r {
                 info!("best move at: {:?}", start.elapsed());
                 return Some(last_score.clone());
             }
@@ -95,8 +96,8 @@ mod tests {
         let en = UsiEngine::new();
         let score = en.get_score(&Position::hirate(), &[], 10, Duration::from_secs(3));
         match score {
-            parser::usi::Score::Mate(_) => panic!(),
-            parser::usi::Score::Cp(p) => assert!(p > 0 && p < 200),
+            parser::usi_comobine::Score::Mate(_) => panic!(),
+            parser::usi_comobine::Score::Cp(p) => assert!(p > 0 && p < 200),
         }
     }
 }
