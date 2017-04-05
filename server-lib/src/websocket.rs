@@ -8,7 +8,7 @@ use std::error::Error;
 
 use rustc_serialize::json;
 
-use core_lib::parser::usi_comobine::Score;
+use core_lib::parser::usi::Score;
 use core_lib::usi_engine;
 use core_lib::types::*;
 

@@ -2,7 +2,6 @@ use super::piece::Piece;
 use std::collections::BTreeMap;
 use std::ops::Index;
 use std::ops::IndexMut;
-use std::fmt;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Color {
