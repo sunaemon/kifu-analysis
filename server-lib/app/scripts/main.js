@@ -83,22 +83,22 @@ $(document).ready(function() {
         };
         connection.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const n = data[1];
+            const n = data[0];
 
-            let value = data[0].score.fields[0];
-            const type = data[0].score.variant;
+            let value = data[1].score.fields[0];
+            const type = data[1].score.variant;
             if (n % 2) {
                 value = -value;
             }
 
-            kifu[n].score = data[0].score;
-            kifu[n].pv = '';
-            data[0].moves.forEach(function(m, i) {
+            kifu[n].score = data[1].score;
+            kifu[n].pv_str = '';
+            data[1].moves.forEach(function(m, i) {
                 if (i > 0) {
-                    kifu[n].pv = `${kifu[n].pv}${m.movestr}`;
+                    kifu[n].pv_str = `${kifu[n].pv_str}${m.movestr}`;
                 }
             });
-            $('#moves').children(`[value="${n}"]`).text(`${n} ${kifu[n].movestr} ${kifu[n].pv} ${type} ${value}`);
+            $('#moves').children(`[value="${n}"]`).text(`${n} ${kifu[n].movestr} ${kifu[n].pv_str} ${type} ${value}`);
         };
     }
 
