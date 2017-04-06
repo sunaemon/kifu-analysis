@@ -115,9 +115,9 @@ pub enum PrimitiveMove {
 impl PrimitiveMove {
     pub fn to_move(&self, p: &Position) -> Move {
         match self {
-            &PrimitiveMove::Drop { color, piece, to } => {
+            &PrimitiveMove::Drop { color: _, piece, to } => {
                 Move::Drop {
-                    color: color,
+                    color: p.color(),
                     piece: piece,
                     to: to,
                 }

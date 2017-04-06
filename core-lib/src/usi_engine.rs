@@ -85,25 +85,24 @@ impl UsiEngine {
             } else if let parser::usi::Response::BestMove(_) = r {
                 info!("best move at: {:?}", start.elapsed());
 
-                let mut p = Position::hirate();
+                let mut p = pos.clone();
                 let mut movements = Vec::new();
+                let mut last_move = None;
 
-                if let Some(m) = moves.last() {
-                    movements.push(encoder::Movement {
-                        movement: Some(m.clone()),
-                        movestr: Some(encoder::japanese::enc_move(&m)),
-                        position: p.clone(),
-                    })
-                } else {
-                    movements.push(encoder::Movement {
-                        movement: None,
-                        movestr: None,
-                        position: p.clone(),
-                    })
+                for m in moves {
+                    p.make_move(m).unwrap();
+                    last_move = Some(m);
                 }
+
+                movements.push(encoder::Movement {
+                    movement: last_move.cloned(),
+                    movestr: last_move.map(|m| encoder::japanese::enc_move(m)),
+                    position: p.clone(),
+                });
 
                 for pm in last_pv.clone() {
                     let m = pm.to_move(&p);
+                    info!("{:?}, {:?}, {:?}", &p, &pm, &m);
                     p.make_move(&m).unwrap();
                     movements.push(encoder::Movement {
                         movement: Some(m),

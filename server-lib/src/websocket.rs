@@ -94,8 +94,7 @@ impl Handler {
                                          max_depth as u64,
                                          Duration::from_secs(3));
 
-
-                let dat_to_send = json::encode(&s).unwrap();
+                let dat_to_send = json::encode(&(infos, n)).unwrap();
 
                 info!("{}", dat_to_send);
                 out.send(dat_to_send).unwrap();
