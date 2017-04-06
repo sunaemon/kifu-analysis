@@ -8,7 +8,7 @@ use std::error::Error;
 
 use rustc_serialize::json;
 
-use core_lib::parser::usi::Score;
+use core_lib::parser::usi::Info;
 use core_lib::usi_engine;
 use core_lib::types::*;
 
@@ -20,9 +20,9 @@ lazy_static! {
 }
 
 #[derive(PartialEq, Clone, RustcDecodable, RustcEncodable)]
-struct ScoreWithNum {
+struct InfoWithNum {
     n: usize,
-    score: Score,
+    infos: Vec<Info>,
 }
 
 fn to_ws_err<T: Error>(e: T) -> ws::Error {
@@ -88,14 +88,13 @@ impl Handler {
                 if *data.to_terminate.lock().unwrap() {
                     return;
                 }
-                let score = en.get_score(&g.position,
+
+                let infos = en.get_score(&g.position,
                                          &g.moves[0..n],
                                          max_depth as u64,
                                          Duration::from_secs(3));
-                let s = ScoreWithNum {
-                    n: n,
-                    score: score,
-                };
+
+
                 let dat_to_send = json::encode(&s).unwrap();
 
                 info!("{}", dat_to_send);

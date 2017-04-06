@@ -37,70 +37,70 @@ impl Point {
         Point::new(x - 1, y - 1)
     }
 }
-/*
-impl fmt::Debug for Point {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Point{{ {}{} }}", self.x + 1, self.y + 1)
-    }
-}
-*/
 
-#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
-pub struct Move {
-    c: Color,
-    from: Option<Point>,
-    to: Point,
-    p: Piece,
-    promote: bool,
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
+pub enum Move {
+    Move {
+        color: Color,
+        piece: Piece,
+        from: Point,
+        to: Point,
+        promote: bool,
+    },
+    Drop {
+        color: Color,
+        piece: Piece,
+        to: Point,
+    },
 }
 
 impl Move {
-    pub fn new(c: Color,
-               from: Option<Point>,
-               to: Point,
-               p: Piece,
-               promote: bool)
-               -> Result<Move, String> {
-        if promote && !p.is_promoted() {
-            return Err(format!("{:?} is not promoted", p));
-        }
-
-        Ok(Move {
-            c: c,
-            from: from,
-            to: to,
-            p: p,
-            promote: promote,
-        })
-    }
     pub fn color(&self) -> Color {
-        self.c
+        match self {
+            &Move::Move { color, piece: _, from: _, to: _, promote: _ } => color,
+            &Move::Drop { color, piece: _, to: _ } => color,
+        }
     }
     pub fn is_drop(&self) -> bool {
-        !self.from.is_some()
+        match self {
+            &Move::Move { color: _, piece: _, from: _, to: _, promote: _ } => false,
+            &Move::Drop { color: _, piece: _, to: _ } => true,
+        }
     }
     pub fn is_promote(&self) -> bool {
-        self.promote
+        match self {
+            &Move::Move { color: _, piece: _, from: _, to: _, promote } => promote,
+            &Move::Drop { color: _, piece: _, to: _ } => false,
+        }
     }
     pub fn from(&self) -> Option<Point> {
-        self.from
+        match self {
+            &Move::Move { color: _, piece: _, from, to: _, promote: _ } => Some(from),
+            &Move::Drop { color: _, piece: _, to: _ } => None,
+        }
     }
     pub fn to(&self) -> Point {
-        self.to
+        match self {
+            &Move::Move { color: _, piece: _, from: _, to, promote: _ } => to,
+            &Move::Drop { color: _, piece: _, to } => to,
+        }
     }
     pub fn piece(&self) -> Piece {
-        self.p
+        match self {
+            &Move::Move { color: _, piece, from: _, to: _, promote: _ } => piece,
+            &Move::Drop { color: _, piece, to: _ } => piece,
+        }
     }
     pub fn piece_before_move(&self) -> Piece {
         if self.is_promote() {
-            self.p.demote().unwrap()
+            self.piece().demote().unwrap()
         } else {
-            self.p
+            self.piece()
         }
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub enum Win {
     /// 相手の投了で勝ち
     Toryo,
@@ -116,19 +116,19 @@ pub enum Win {
     OuteSennnichi,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub enum Draw {
     /// 千日手で引き分け
     Sennnichi,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, RustcDecodable, RustcEncodable)]
 pub enum IssueOfGame {
     Win(Color, Win),
     Draw(Draw),
 }
 
-#[derive(PartialEq, Debug, Clone, RustcDecodable, RustcEncodable)]
+#[derive(PartialEq, Eq, Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Board {
     inner: [[Option<(Color, Piece)>; 9]; 9],
 }

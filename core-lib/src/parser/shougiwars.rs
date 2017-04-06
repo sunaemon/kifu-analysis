@@ -55,7 +55,21 @@ impl PrimitiveMove {
         }
     }
     fn to_move(&self, promote: bool) -> Move {
-        Move::new(self.color, self.from, self.to, self.piece, promote).unwrap()
+        if let Some(from) = self.from {
+            Move::Move {
+                color: self.color,
+                piece: self.piece,
+                from: from,
+                to: self.to,
+                promote: promote,
+            }
+        } else {
+            Move::Drop {
+                color: self.color,
+                piece: self.piece,
+                to: self.to,
+            }
+        }
     }
 
     fn primive_move_to_move(&self, p: &Position) -> Move {

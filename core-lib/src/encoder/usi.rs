@@ -150,36 +150,38 @@ mod tests {
         assert_eq!(super::board(&Board::hirate()),
                    "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL");
 
-        assert_eq!(super::enc_move(&Move::new(Color::Black,
-                                              Some(Point::one_start(7, 7)),
-                                              Point::one_start(7, 6),
-                                              Piece::Pawn,
-                                              false)
-                       .unwrap()),
+        assert_eq!(super::enc_move(&Move::Move {
+                       color: Color::Black,
+                       from: Point::one_start(7, 7),
+                       to: Point::one_start(7, 6),
+                       piece: Piece::Pawn,
+                       promote: false,
+                   }),
                    "7g7f");
-        assert_eq!(super::enc_move(&Move::new(Color::Black,
-                                              None,
-                                              Point::one_start(7, 6),
-                                              Piece::Pawn,
-                                              false)
-                       .unwrap()),
+        assert_eq!(super::enc_move(&Move::Drop {
+                       color: Color::Black,
+                       to: Point::one_start(7, 6),
+                       piece: Piece::Pawn,
+                   }),
                    "P*7f");
 
         assert_eq!(super::position(&Position::new(Board::hirate(),
                                                   Captured::default(),
                                                   Color::Black),
-                                   &vec![Move::new(Color::Black,
-                                                   Some(Point::one_start(7, 7)),
-                                                   Point::one_start(7, 6),
-                                                   Piece::Pawn,
-                                                   false)
-                                             .unwrap(),
-                                         Move::new(Color::White,
-                                                   Some(Point::one_start(3, 3)),
-                                                   Point::one_start(3, 4),
-                                                   Piece::Pawn,
-                                                   false)
-                                             .unwrap()]),
+                                   &vec![Move::Move {
+                                             color: Color::Black,
+                                             from: Point::one_start(7, 7),
+                                             to: Point::one_start(7, 6),
+                                             piece: Piece::Pawn,
+                                             promote: false,
+                                         },
+                                         Move::Move {
+                                             color: Color::White,
+                                             from: Point::one_start(3, 3),
+                                             to: Point::one_start(3, 4),
+                                             piece: Piece::Pawn,
+                                             promote: false,
+                                         }]),
                    "position sfen lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1 \
                     moves 7g7f 3c3d")
 
@@ -188,24 +190,26 @@ mod tests {
     #[test]
     fn make_move_check() {
         let mut p = Position::hirate();
-        p.make_move(&Move::new(Color::Black,
-                                  Some(Point::one_start(7, 7)),
-                                  Point::one_start(7, 6),
-                                  Piece::Pawn,
-                                  false)
-                .unwrap())
+        p.make_move(&Move::Move {
+                color: Color::Black,
+                from: Point::one_start(7, 7),
+                to: Point::one_start(7, 6),
+                piece: Piece::Pawn,
+                promote: false,
+            })
             .unwrap();
 
         assert_eq!(super::sfen(&p),
                    "lnsgkgsnl/1r5b1/ppppppppp/9/9/2P6/PP1PPPPPP/1B5R1/LNSGKGSNL w - 1");
 
         let mut p = Position::hirate();
-        let m = Move::new(Color::Black,
-                          Some(Point::one_start(7, 7)),
-                          Point::one_start(7, 6),
-                          Piece::PPawn,
-                          true)
-            .unwrap();
+        let m = Move::Move {
+            color: Color::Black,
+            from: Point::one_start(7, 7),
+            to: Point::one_start(7, 6),
+            piece: Piece::PPawn,
+            promote: true,
+        };
         p.make_move(&m).unwrap();
 
         assert_eq!(super::sfen(&p),

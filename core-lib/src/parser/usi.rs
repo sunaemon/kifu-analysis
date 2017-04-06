@@ -99,13 +99,44 @@ pub enum Score {
 }
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
-pub enum PrivimiveMove {
-    Drop { c: Color, p: Piece, to: Point },
+pub enum PrimitiveMove {
+    Drop {
+        color: Color,
+        piece: Piece,
+        to: Point,
+    },
     Move {
         from: Point,
         to: Point,
-        promotion: bool,
+        promote: bool,
     },
+}
+
+impl PrimitiveMove {
+    pub fn to_move(&self, p: &Position) -> Move {
+        match self {
+            &PrimitiveMove::Drop { color, piece, to } => {
+                Move::Drop {
+                    color: color,
+                    piece: piece,
+                    to: to,
+                }
+            }
+            &PrimitiveMove::Move { from, to, promote } => {
+                Move::Move {
+                    color: p.color(),
+                    piece: if promote {
+                        p.board()[from].unwrap().1.promote().unwrap()
+                    } else {
+                        p.board()[from].unwrap().1
+                    },
+                    from: from,
+                    to: to,
+                    promote: promote,
+                }
+            }
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
@@ -119,14 +150,14 @@ pub enum Info {
     HashFull(u64),
     Score(Score),
     MultiPv(u64),
-    Pv(Vec<PrivimiveMove>),
+    Pv(Vec<PrimitiveMove>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord, RustcDecodable, RustcEncodable)]
 pub enum Response {
     UsiOk,
     ReadyOk,
-    BestMove(PrivimiveMove),
+    BestMove(PrimitiveMove),
     Infos(Vec<Info>),
 }
 
@@ -144,23 +175,23 @@ fn point_parser<I>(input: I) -> ParseResult<Point, I>
         .parse_stream(input)
 }
 
-fn pmove_parser<I>(input: I) -> ParseResult<PrivimiveMove, I>
+fn pmove_parser<I>(input: I) -> ParseResult<PrimitiveMove, I>
     where I: Stream<Item = u8>
 {
     choice!((parser(piece_with_color_parser).skip(token(b'*')), parser(point_parser))
                 .map(|((c, p), to)| {
-            PrivimiveMove::Drop {
-                c: c,
-                p: p,
+            PrimitiveMove::Drop {
+                color: c,
+                piece: p,
                 to: to,
             }
         }),
             (parser(point_parser), parser(point_parser), optional(token(b'+')))
-                .map(|(from, to, promotion)| {
-            PrivimiveMove::Move {
+                .map(|(from, to, promote)| {
+            PrimitiveMove::Move {
                 from: from,
                 to: to,
-                promotion: promotion.is_some(),
+                promote: promote.is_some(),
             }
         }))
         .parse_stream(input)
@@ -287,72 +318,72 @@ mod tests {
 
         use types::Color::*;
         use types::Piece::*;
-        use super::PrivimiveMove::*;
+        use super::PrimitiveMove::*;
 
         let moves = vec![Move {
                              from: Point { x: 8, y: 3 },
                              to: Point { x: 8, y: 2 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 4, y: 3 },
                              to: Point { x: 4, y: 5 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 3, y: 6 },
                              to: Point { x: 4, y: 5 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 0, y: 3 },
                              to: Point { x: 0, y: 4 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 0, y: 5 },
                              to: Point { x: 0, y: 4 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 0, y: 0 },
                              to: Point { x: 0, y: 4 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 0, y: 8 },
                              to: Point { x: 0, y: 4 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 1, y: 2 },
                              to: Point { x: 1, y: 3 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 1, y: 4 },
                              to: Point { x: 1, y: 3 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 2, y: 2 },
                              to: Point { x: 1, y: 3 },
-                             promotion: false,
+                             promote: false,
                          },
                          Move {
                              from: Point { x: 0, y: 4 },
                              to: Point { x: 0, y: 0 },
-                             promotion: true,
+                             promote: true,
                          },
                          Drop {
-                             c: Black,
-                             p: Bishop,
+                             color: Black,
+                             piece: Bishop,
                              to: Point { x: 5, y: 4 },
                          },
                          Move {
                              from: Point { x: 4, y: 5 },
                              to: Point { x: 5, y: 4 },
-                             promotion: false,
+                             promote: false,
                          }];
 
         assert_eq!(parser(response_parser)

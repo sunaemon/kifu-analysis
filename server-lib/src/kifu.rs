@@ -133,34 +133,6 @@ fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-
-#[derive(PartialEq, Clone, RustcDecodable, RustcEncodable)]
-struct Movement {
-    movement: Option<Move>,
-    movestr: Option<String>,
-    position: Position,
-}
-
-fn get_moves(g: &Game) -> Result<Vec<Movement>, String> {
-    let mut p = Position::hirate();
-    let mut kifu = Vec::new();
-    kifu.push(Movement {
-        movement: None,
-        movestr: None,
-        position: p.clone(),
-    });
-    for m in g.moves.iter() {
-        p.make_move(m)?;
-        kifu.push(Movement {
-            movement: Some(m.clone()),
-            movestr: Some(encoder::japanese::enc_move(m)),
-            position: p.clone(),
-        });
-    }
-
-    Ok(kifu)
-}
-
 fn show_moves(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let id = iexpect!(router_ext.find("id"));
@@ -169,7 +141,7 @@ fn show_moves(req: &mut Request) -> IronResult<Response> {
     let d = database_lib::Database::new();
     let k = d.get_kifu(id).map_err(make_it_ironerror)?;
     let g = json::decode::<Game>(&k.data).unwrap();
-    let moves = get_moves(&g).map_err(make_it_ironerror)?;
+    let moves = encoder::get_moves(&g).map_err(make_it_ironerror)?;
 
     let mut resp = Response::with((status::Ok, json::encode(&moves).unwrap()));
     resp.headers.set(ContentType(Mime(TopLevel::Application,

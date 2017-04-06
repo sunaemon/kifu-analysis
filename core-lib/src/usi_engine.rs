@@ -12,6 +12,14 @@ pub struct UsiEngine {
     process: Popen,
 }
 
+
+#[derive(PartialEq, Clone, Debug, RustcDecodable, RustcEncodable)]
+pub struct UsiEngineInfo {
+    depth: u64,
+    score: parser::usi::Score,
+    moves: Vec<encoder::Movement>,
+}
+
 impl UsiEngine {
     pub fn new() -> Self {
         let mut work_dir = env::home_dir().unwrap();
@@ -37,7 +45,7 @@ impl UsiEngine {
                      moves: &[Move],
                      max_depth: u64,
                      max_time: Duration)
-                     -> parser::usi::Score {
+                     -> UsiEngineInfo {
         let mut stdin_ref = self.process.stdin.as_ref().unwrap();
         let stdout_ref = self.process.stdout.as_ref().unwrap();
         //let mut stderr_ref = p.stderr.as_ref().unwrap();
@@ -48,6 +56,7 @@ impl UsiEngine {
 
         let mut last_depth = 0;
         let mut last_score = parser::usi::Score::Cp(0);
+        let mut last_pv = Vec::new();
 
         parser::usi::read_and_parse(&mut BufReader::new(stdout_ref), |r| {
             if let parser::usi::Response::ReadyOk = r {
@@ -64,6 +73,8 @@ impl UsiEngine {
                         last_depth = d;
                     } else if let parser::usi::Info::Score(s) = info {
                         last_score = s;
+                    } else if let parser::usi::Info::Pv(pv) = info {
+                        last_pv = pv;
                     }
                 }
 
@@ -73,7 +84,39 @@ impl UsiEngine {
                 }
             } else if let parser::usi::Response::BestMove(_) = r {
                 info!("best move at: {:?}", start.elapsed());
-                return Some(last_score.clone());
+
+                let mut p = Position::hirate();
+                let mut movements = Vec::new();
+
+                if let Some(m) = moves.last() {
+                    movements.push(encoder::Movement {
+                        movement: Some(m.clone()),
+                        movestr: Some(encoder::japanese::enc_move(&m)),
+                        position: p.clone(),
+                    })
+                } else {
+                    movements.push(encoder::Movement {
+                        movement: None,
+                        movestr: None,
+                        position: p.clone(),
+                    })
+                }
+
+                for pm in last_pv.clone() {
+                    let m = pm.to_move(&p);
+                    p.make_move(&m).unwrap();
+                    movements.push(encoder::Movement {
+                        movement: Some(m),
+                        movestr: Some(encoder::japanese::enc_move(&m)),
+                        position: p.clone(),
+                    });
+                }
+
+                return Some(UsiEngineInfo {
+                    depth: last_depth,
+                    score: last_score.clone(),
+                    moves: movements,
+                });
             }
             None
         })
@@ -94,8 +137,8 @@ mod tests {
     #[test]
     fn it_works() {
         let en = UsiEngine::new();
-        let score = en.get_score(&Position::hirate(), &[], 10, Duration::from_secs(3));
-        match score {
+        let info = en.get_score(&Position::hirate(), &[], 10, Duration::from_secs(3));
+        match info.score {
             parser::usi::Score::Mate(_) => panic!(),
             parser::usi::Score::Cp(p) => assert!(p > 0 && p < 200),
         }
