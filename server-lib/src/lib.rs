@@ -44,6 +44,7 @@ mod websocket;
 use std::path::Path;
 use std::thread;
 use std::env;
+use std::sync::Arc;
 
 use logger::Logger;
 
@@ -58,6 +59,9 @@ use iron_sessionstorage::SessionStorage;
 use iron_sessionstorage::backends::SignedCookieBackend;
 
 use handlebars_iron::{HandlebarsEngine, DirectorySource, Template};
+
+#[cfg(feature = "watch")]
+use handlebars_iron::Watchable;
 
 lazy_static! {
   static ref SESSION_SECRET: Vec<u8> = env::var("SESSION_SECRET")
@@ -88,6 +92,8 @@ pub fn start_servers() {
     let mut hbse = HandlebarsEngine::new();
     hbse.add(Box::new(DirectorySource::new("./server-lib/templates/", ".hbs")));
     hbse.reload().unwrap();
+    let hbse_ref = Arc::new(hbse);
+    hbse_ref.watch("server-lib/templates/");
 
     let mut route = Router::new();
     route.get("/", index, "top");
@@ -100,13 +106,15 @@ pub fn start_servers() {
     mount.mount("/dist", Static::new(Path::new("server-lib/dist")));
     mount.mount("/bower_components",
                 Static::new(Path::new("server-lib/bower_components")));
+    mount.mount("/fonts",
+                Static::new(Path::new("server-lib/bower_components/font-awesome/fonts/")));
 
     let mut chain = Chain::new(mount);
     let (logger_before, logger_after) = Logger::new(None);
     chain.link_before(logger_before);
     chain.link_around(SessionStorage::new(SignedCookieBackend::new(SESSION_SECRET.clone())));
     chain.link_after(error::ErrorReporter);
-    chain.link_after(hbse);
+    chain.link_after(hbse_ref);
     chain.link_after(logger_after);
 
     thread::spawn(move || {

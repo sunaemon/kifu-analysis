@@ -16,8 +16,11 @@ gulp.task('sprite', function() {
 });
 
 gulp.task('scss', function() {
-    gulp.src(['bower_components/bootstrap/scss/bootstrap.scss', 'app/styles/main.scss'])
-        .pipe(sass())
+    gulp.src(['app/styles/main.scss'])
+        .pipe(sass({
+            includePaths:
+            ['bower_components/bootstrap/scss/', 'bower_components/font-awesome/scss/']
+        }))
         .pipe(autoprefixer())
         .pipe(cleanCSS())
         .pipe(gulp.dest('dist/'));

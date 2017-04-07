@@ -1,3 +1,6 @@
-//@import "sprite";
-//@include sprites($spritesheet-sprites);
+@import 'bootstrap';
+@import 'font-awesome';
 
+.move-selected {
+  color: rgb(91, 192, 222);
+}

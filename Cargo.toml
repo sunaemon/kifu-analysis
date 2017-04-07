@@ -9,6 +9,7 @@ clippy = {version = "*", optional = true}
 
 [features]
 default = []
+watch = ["server-lib/watch"]
 
 [dependencies.server-lib]
 path = "server-lib"

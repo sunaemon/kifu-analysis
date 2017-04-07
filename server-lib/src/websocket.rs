@@ -92,7 +92,7 @@ impl Handler {
                 let infos = en.get_score(&g.position,
                                          &g.moves[0..n],
                                          max_depth as u64,
-                                         Duration::from_secs(3));
+                                         Duration::from_secs(1));
 
                 let dat_to_send = json::encode(&(n, infos)).unwrap();
 

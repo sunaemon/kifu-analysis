@@ -35,6 +35,7 @@ clippy = {version = "*", optional = true}
 
 [features]
 default = []
+watch = ["handlebars-iron/watch"]
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"

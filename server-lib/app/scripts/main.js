@@ -34,13 +34,95 @@ $(document).ready(function() {
         $.get('/dist/sprite.json', function(d) {
             sprite = d;
             if (!board_init && kifu) {
-                update_board(kifu[0].position.board.inner);
+                update_board();
                 board_init = true;
             }
         });
 
+        let n = 0;
+        let k = 0;
         const stripe_img = $('#sprite');
-        function update_board(board) {
+        function update_board() {
+            $('#n').text(n);
+            $('#k').text(k);
+
+            let board;
+            if (k === 0) {
+                board = kifu[n].position.board.inner;
+            } else {
+                board = kifu[n].pv[k].position.board.inner;
+            }
+
+            for (let i = -2; i < 3; i++) {
+                const ki = kifu[n + i];
+                const ki_n = kifu[n + i + 1];
+
+                if (i === 0 && k === 0) {
+                    $(`#move${i}`).addClass('move-selected');
+                } else {
+                    $(`#move${i}`).removeClass('move-selected');
+                }
+
+                if (ki && ki.movement) {
+                    $(`#move${i}`).text(ki.movestr);
+                } else {
+                    $(`#move${i}`).text('-----');
+                }
+
+                if (ki && ki.value) {
+                    $(`#score${i}`).text(`${ki.type} ${ki.value}`);
+                } else {
+                    $(`#score${i}`).text('-----');
+                }
+
+                if (ki && ki.value && ki_n && ki_n.value) {
+                    if (ki.type === 'Cp' && ki_n.type === 'Cp') {
+                        let value_diff = ki_n.value - ki.value;
+                        if ((n + i) % 2) {
+                            value_diff = -value_diff;
+                        }
+                        $(`#diff${i}`).text(value_diff);
+                    } else if (ki.type === 'Cp' && ki_n.type === 'Mate') {
+                        $(`#diff${i}`).text(`cp ${ki.value} -> mate ${ki_n.value}`);
+                    } else if (ki.type === 'Mate' && ki_n.type === 'Cp') {
+                        $(`#diff${i}`).text(`mate ${ki.value} -> cp ${ki_n.value}`);
+                    } else if (ki.type === 'Mate' && ki_n.type === 'Mate') {
+                        const value_diff = ki_n.value - ki.value;
+                        $(`#diff${i}`).text(`mate ${value_diff}`);
+                    } else {
+                        console.log(`error: ${ki.type}, ${ki_n.type}`);
+                    }
+                } else {
+                    $(`#diff${i}`).text('-----');
+                }
+
+                if (ki && ki.pv) {
+                    const make_templ = function(k) {
+                        let template = '';
+
+                        const init = Math.max(k - 1, 1);
+                        for (let j = init; j < Math.min(init + 4, ki.pv.length); j++) {
+                            if (ki.pv[j]) {
+                                if (i === 0 && j === k) {
+                                    template = `${template}<span class="move-selected">${ki.pv[j].movestr}</span>`;
+                                } else {
+                                    template = `${template}${ki.pv[j].movestr}`;
+                                }
+                            }
+                        }
+
+                        return template;
+                    };
+                    if (i === 0) {
+                        $(`#pv${i}`).html(make_templ(k));
+                    } else {
+                        $(`#pv${i}`).html(make_templ(0));
+                    }
+                } else {
+                    $(`#pv${i}`).text('-----');
+                }
+            }
+
             const ctx = $('#board')[0].getContext('2d');
             ctx.drawImage(stripe_img[0], sprite.board.x, sprite.board.y, sprite.board.width, sprite.board.height, 0, 0, sprite.board.width, sprite.board.height);
 
@@ -55,21 +137,108 @@ $(document).ready(function() {
             }
         }
 
+
+        let x_start;
+        let y_start;
+        let n_start;
+        let k_start;
+        let k_pos = new Date();
+        $(window).on('touchstart', function(e) {
+            x_start = e.changedTouches[0].pageX;
+            y_start = e.changedTouches[0].pageY;
+            n_start = n;
+            k_start = k;
+        });
+        $(window).on('touchmove', function(e) {
+            let updated = false;
+            if (k === 0 && new Date() - k_pos > 20) {
+                const old_n = n;
+                const new_n = n_start + Math.floor((y_start - e.changedTouches[0].pageY) / 10);
+                n = Math.min(Math.max(new_n, 0), kifu.length);
+
+                if (old_n !== n) {
+                    updated = true;
+                    x_start = e.changedTouches[0].pageX;
+                }
+            } else {
+                y_start = e.changedTouches[0].pageY;
+                k_pos = new Date();
+            }
+
+            const old_k = k;
+            const new_k = k_start + Math.floor((x_start - e.changedTouches[0].pageX) / 10);
+            if (kifu[n].pv) {
+                k = Math.min(Math.max(new_k, 0), kifu[n].pv.length);
+            }
+
+            if (old_k !== k) {
+                updated = true;
+            }
+
+            e.preventDefault();
+
+            if (updated) {
+                update_board();
+            }
+        });
+
+        function next() {
+            if (!(kifu[n].pv && kifu[n].pv[k + 1])) {
+                return;
+            }
+            k += 1;
+            update_board();
+        }
+        function prev() {
+            if (k < 1) {
+                return;
+            }
+            k -= 1;
+            update_board();
+        }
+        function down() {
+            if (!kifu[n + 1]) {
+                return;
+            }
+            n += 1;
+            k = 0;
+            update_board();
+        }
+        function up() {
+            if (n < 1) {
+                return;
+            }
+            n -= 1;
+            k = 0;
+            update_board();
+        }
+        $('#next_button').click(next);
+        $('#prev_button').click(prev);
+        $('#down_button').click(down);
+        $('#up_button').click(up);
+        $(document).keypress(function(e) {
+            e = e || window.event;
+            if (e.keyCode === 37) {
+                prev();
+            } else if (e.keyCode === 38) {
+                up();
+            } else if (e.keyCode === 39) {
+                next();
+            } else if (e.keyCode === 40) {
+                down();
+            } else {
+                return;
+            }
+            e.preventDefault();
+        });
+
         let kifu = null;
         $.get(`/kifu/show_moves/${kifu_id}`, function(d) {
             kifu = d;
-            $('#moves').empty();
-            kifu.forEach(function(m, n) {
-                $('#moves').append($('<option>').val(n).text(`${n} ${m.movestr}`));
-            });
-            $('#moves').val('0');
             if (!board_init && sprite) {
-                update_board(kifu[0].position.board.inner);
+                update_board();
                 board_init = true;
             }
-        });
-        $('#moves').change(function() {
-            update_board(kifu[parseInt($('#moves').val())].position.board.inner);
         });
 
         const websocket_url = $('#websocket_url').text();
@@ -83,22 +252,19 @@ $(document).ready(function() {
         };
         connection.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const n = data[0];
+            const nn = data[0];
 
             let value = data[1].score.fields[0];
             const type = data[1].score.variant;
-            if (n % 2) {
+            if (nn % 2) {
                 value = -value;
             }
 
-            kifu[n].score = data[1].score;
-            kifu[n].pv_str = '';
-            data[1].moves.forEach(function(m, i) {
-                if (i > 0) {
-                    kifu[n].pv_str = `${kifu[n].pv_str}${m.movestr}`;
-                }
-            });
-            $('#moves').children(`[value="${n}"]`).text(`${n} ${kifu[n].movestr} ${kifu[n].pv_str} ${type} ${value}`);
+            kifu[nn].value = value;
+            kifu[nn].type = type;
+            kifu[nn].pv = data[1].moves;
+
+            update_board();
         };
     }
 
