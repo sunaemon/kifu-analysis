@@ -96,7 +96,7 @@ impl Handler {
 
                 let dat_to_send = json::encode(&(n, infos)).unwrap();
 
-                info!("{}", dat_to_send);
+                debug!("{}", dat_to_send);
                 out.send(dat_to_send).unwrap();
             }
         });

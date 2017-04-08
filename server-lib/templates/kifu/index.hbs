@@ -1,14 +1,20 @@
 {{#*inline "page"}}
-<table>
+<table class="table">
   <thead>
-    <th>
-      <td>id</td>
-    </th>
+    <tr>
+      <th>id</th>
+      <th>black</th>
+      <th>white</th>
+      <th>winner</th>
+    </tr>
   </thead>
   <tbody>
 {{#each kifu}}
     <tr>
       <td><a href="{{this.url}}">{{this.id}}</a></td>
+      <td>{{this.black}}</td>
+      <td>{{this.white}}</td>
+      <td>{{this.winner}}</td>
     </tr>
 {{/each}}
   </tbody>

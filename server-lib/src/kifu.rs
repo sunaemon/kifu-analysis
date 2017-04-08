@@ -1,5 +1,6 @@
 use std::env;
 use std::str::FromStr;
+use std::error::Error;
 
 use rustc_serialize::json;
 
@@ -95,6 +96,25 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
         let url = url_for!(req, "kifu_show", "id" => kifu.id.to_string());
         k.insert("url".to_string(), url.to_string().to_json());
         k.insert("id".to_string(), kifu.id.to_json());
+
+        fn id_to_gamer(d: &mut database_lib::Database,
+                       id: Option<i32>)
+                       -> Result<String, Box<Error>> {
+            if let Some(id) = id {
+                Ok(d.find_gamer(id)?.name)
+            } else {
+                Ok("".to_string())
+            }
+        }
+
+
+        // TODO: fix 3n+1 problen
+        let black = id_to_gamer(&mut d, kifu.black_id).map_err(make_it_ironerror)?;
+        k.insert("black".to_string(), black.to_json());
+        let white = id_to_gamer(&mut d, kifu.white_id).map_err(make_it_ironerror)?;
+        k.insert("white".to_string(), white.to_json());
+        let winner = id_to_gamer(&mut d, kifu.winner_id).map_err(make_it_ironerror)?;
+        k.insert("winner".to_string(), winner.to_json());
 
         kifu_data.push(k.to_json());
     }

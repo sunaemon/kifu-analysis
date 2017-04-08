@@ -63,7 +63,7 @@ impl UsiEngine {
                 let pos_string = encoder::usi::position(pos, moves);
                 let pos = pos_string.as_bytes();
 
-                info!("ready ok at: {:?}", start.elapsed());
+                debug!("ready ok at: {:?}", start.elapsed());
 
                 stdin_ref.write_all(pos).unwrap();
                 stdin_ref.write_all(b"\ngo\n").unwrap();
@@ -79,7 +79,7 @@ impl UsiEngine {
                 }
 
                 if last_depth >= max_depth || start.elapsed() > max_time {
-                    info!("stop at: {:?}", start.elapsed());
+                    debug!("stop at: {:?}", start.elapsed());
                     stdin_ref.write_all(b"stop\n").unwrap();
                 }
             } else if let parser::usi::Response::BestMove(_) = r {
@@ -102,7 +102,7 @@ impl UsiEngine {
 
                 for pm in last_pv.clone() {
                     let m = pm.to_move(&p);
-                    info!("{:?}, {:?}, {:?}", &p, &pm, &m);
+                    debug!("{:?}, {:?}, {:?}", &p, &pm, &m);
                     p.make_move(&m).unwrap();
                     movements.push(encoder::Movement {
                         movement: Some(m),

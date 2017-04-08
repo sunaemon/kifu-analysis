@@ -47,6 +47,7 @@ pub struct Analysis {
 
 #[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
 #[table_name="kifu_position"]
+#[belongs_to(Kifu)]
 pub struct KifuPosition {
     pub id: i32,
     pub kifu_id: i32,
@@ -56,6 +57,8 @@ pub struct KifuPosition {
 
 #[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
 #[table_name="users_kifu"]
+#[belongs_to(User)]
+#[belongs_to(Kifu)]
 pub struct UserKifu {
     pub id: i32,
     pub user_id: i32,
@@ -89,19 +92,16 @@ pub struct NewKifu<'a> {
     pub original_uid: Option<&'a str>,
 }
 
-/*
 #[derive(Insertable)]
 #[table_name="analysis"]
 pub struct NewAnalysis<'a> {
     pub position: &'a str,
     pub engine: &'a str,
     pub option: &'a str,
-    pub timestamp: SystemTime,
+    pub timestamp: NaiveDateTime,
     pub score: &'a str,
     pub pv: &'a str,
-    pub info: Option<&'a str>,
 }
-*/
 
 #[derive(Insertable)]
 #[table_name="kifu_position"]

@@ -205,6 +205,23 @@ impl Database {
         }
     }
 
+    pub fn find_gamer(&self, id: i32) -> Result<Gamer, DatabaseError> {
+        let gs = gamers::table.filter(gamers::id.eq(id))
+            .load::<Gamer>(&self.conn)?;
+        if gs.len() > 1 {
+            panic!("Unique validation goes wrong!! gamers: {:?}", gs);
+        }
+
+        if gs.len() == 1 {
+            Ok(gs[0].clone())
+        } else {
+            Err(DatabaseError {
+                message: "No such gamer".to_string(),
+                cause: None,
+            })
+        }
+    }
+
     pub fn create_or_find_gamer(&self, name: &str, service: &str) -> Result<Gamer, DatabaseError> {
         let gs = gamers::table.filter(gamers::name.eq(name))
             .filter(gamers::service.eq(service))

@@ -87,7 +87,7 @@ fn index(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-#[cfg(feature = "foo")]
+#[cfg(feature = "watch")]
 fn watch(hbse_ref: &Arc<HandlebarsEngine>) {
     hbse_ref.watch("server-lib/templates/");
 }
