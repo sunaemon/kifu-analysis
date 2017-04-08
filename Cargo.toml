@@ -5,6 +5,8 @@ authors = ["sunaemon <@sunaemon0>"]
 
 [dependencies]
 dotenv = "*"
+daemonize = "*"
+clap = "*"
 clippy = {version = "*", optional = true}
 
 [features]

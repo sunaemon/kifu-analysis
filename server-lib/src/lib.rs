@@ -86,6 +86,14 @@ fn index(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
+#[cfg(feature = "foo")]
+fn watch(hbse_ref: &Arc<HandlebarsEngine>) {
+    hbse_ref.watch("server-lib/templates/");
+}
+
+#[cfg(not(feature = "watch"))]
+fn watch(_hbse_ref: &Arc<HandlebarsEngine>) {}
+
 pub fn start_servers() {
     env_logger::init().unwrap();
 
@@ -93,7 +101,7 @@ pub fn start_servers() {
     hbse.add(Box::new(DirectorySource::new("./server-lib/templates/", ".hbs")));
     hbse.reload().unwrap();
     let hbse_ref = Arc::new(hbse);
-    hbse_ref.watch("server-lib/templates/");
+    watch(&hbse_ref);
 
     let mut route = Router::new();
     route.get("/", index, "top");

@@ -237,6 +237,7 @@ impl Database {
                        data: &str,
                        black: Option<&Gamer>,
                        white: Option<&Gamer>,
+                       winner: Option<&Gamer>,
                        timestamp: Option<SystemTime>,
                        original_uid: Option<&str>)
                        -> Result<Kifu, DatabaseError> {
@@ -247,9 +248,10 @@ impl Database {
         }
         let new_kifu = NewKifu {
             data: data,
-            white_id: white.map(move |g| g.id),
-            black_id: black.map(move |g| g.id),
             timestamp: timestamp,
+            black_id: black.map(move |g| g.id),
+            white_id: white.map(move |g| g.id),
+            winner_id: winner.map(move |g| g.id),
             original_uid: original_uid,
         };
 

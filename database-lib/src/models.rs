@@ -1,4 +1,4 @@
-use super::schema::{users, kifu, gamers, users_kifu};
+use super::schema::{users, gamers, kifu, analysis, kifu_position, users_kifu};
 use std::time::SystemTime;
 
 #[derive(Identifiable, Queryable, Associations, Default, Debug, Clone, PartialEq, Eq, Hash)]
@@ -19,14 +19,6 @@ pub struct Gamer {
     pub service: String,
 }
 
-#[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
-#[table_name="users_kifu"]
-pub struct UserKifu {
-    pub id: i32,
-    pub user_id: i32,
-    pub kifu_id: i32,
-}
-
 #[derive(Identifiable, Queryable, Associations, Debug, Clone, PartialEq, Eq)]
 #[table_name="kifu"]
 #[has_many(users_kifu)]
@@ -36,7 +28,38 @@ pub struct Kifu {
     pub timestamp: Option<SystemTime>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
+    pub winner_id: Option<i32>,
     pub original_uid: Option<String>,
+}
+
+#[derive(Identifiable, Queryable, Associations, Debug, Clone, PartialEq, Eq)]
+#[table_name="analysis"]
+pub struct Analysis {
+    pub id: i32,
+    pub position: String,
+    pub engine: String,
+    pub option: String,
+    pub timestamp: SystemTime,
+    pub score: String,
+    pub pv: String,
+    pub info: Option<String>,
+}
+
+#[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
+#[table_name="kifu_position"]
+pub struct KifuPosition {
+    pub id: i32,
+    pub kifu_id: i32,
+    pub n: i32,
+    pub position: String,
+}
+
+#[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
+#[table_name="users_kifu"]
+pub struct UserKifu {
+    pub id: i32,
+    pub user_id: i32,
+    pub kifu_id: i32,
 }
 
 #[derive(Insertable)]
@@ -56,18 +79,41 @@ pub struct NewGamer<'a> {
 }
 
 #[derive(Insertable)]
-#[table_name="users_kifu"]
-pub struct NewUserKifu {
-    pub user_id: i32,
-    pub kifu_id: i32,
-}
-
-#[derive(Insertable)]
 #[table_name="kifu"]
 pub struct NewKifu<'a> {
     pub data: &'a str,
     pub timestamp: Option<SystemTime>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
+    pub winner_id: Option<i32>,
     pub original_uid: Option<&'a str>,
+}
+
+/*
+#[derive(Insertable)]
+#[table_name="analysis"]
+pub struct NewAnalysis<'a> {
+    pub position: &'a str,
+    pub engine: &'a str,
+    pub option: &'a str,
+    pub timestamp: SystemTime,
+    pub score: &'a str,
+    pub pv: &'a str,
+    pub info: Option<&'a str>,
+}
+*/
+
+#[derive(Insertable)]
+#[table_name="kifu_position"]
+pub struct NewKifuPosition<'a> {
+    pub kifu_id: i32,
+    pub n: i32,
+    pub position: &'a str,
+}
+
+#[derive(Insertable)]
+#[table_name="users_kifu"]
+pub struct NewUserKifu {
+    pub user_id: i32,
+    pub kifu_id: i32,
 }

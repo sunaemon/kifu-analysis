@@ -166,7 +166,7 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
             let kifu_data = scraping::get_shougiwars_game(game).map_err(make_it_ironerror)?;
             let g = parser::shougiwars::parse(kifu_data.as_bytes()).map_err(make_it_ironerror)?;
             let data = &json::encode(&g).map_err(make_it_ironerror)?;
-            d.create_kifu(data, None, None, None, Some(&uid))
+            d.create_kifu(data, None, None, None, None, Some(&uid))
                 .map_err(make_it_ironerror)?
         }
     };
