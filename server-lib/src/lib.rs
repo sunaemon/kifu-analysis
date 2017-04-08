@@ -4,6 +4,7 @@ extern crate log;
 extern crate env_logger;
 
 extern crate regex;
+extern crate chrono;
 
 extern crate ws;
 

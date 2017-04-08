@@ -7,6 +7,7 @@ extern crate diesel_codegen;
 extern crate rand;
 extern crate crypto;
 extern crate dotenv;
+extern crate chrono;
 
 pub mod schema;
 pub mod models;
@@ -14,7 +15,6 @@ pub mod models;
 use std::error::Error;
 use std::env;
 use std::fmt;
-use std::time::SystemTime;
 
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
@@ -22,6 +22,8 @@ use rand::{Rng, OsRng};
 
 use crypto::hmac::Hmac;
 use crypto::sha2::Sha256;
+
+use chrono::prelude::*;
 
 use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer, UserKifu, NewUserKifu};
 use schema::{users, kifu, gamers, users_kifu};
@@ -238,7 +240,7 @@ impl Database {
                        black: Option<&Gamer>,
                        white: Option<&Gamer>,
                        winner: Option<&Gamer>,
-                       timestamp: Option<SystemTime>,
+                       timestamp: Option<NaiveDateTime>,
                        original_uid: Option<&str>)
                        -> Result<Kifu, DatabaseError> {
         if let Some(original_uid) = original_uid {

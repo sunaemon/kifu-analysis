@@ -28,6 +28,7 @@ ws = "^0.7.0"
 url = "*"
 rustc-serialize = "^0.3.16"
 regex = "*"
+chrono = { version = "0.3", features = ["rustc-serialize"] }
 
 lazy_static = "*"
 

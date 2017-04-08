@@ -1,5 +1,5 @@
 use super::schema::{users, gamers, kifu, analysis, kifu_position, users_kifu};
-use std::time::SystemTime;
+use chrono::prelude::*;
 
 #[derive(Identifiable, Queryable, Associations, Default, Debug, Clone, PartialEq, Eq, Hash)]
 #[has_many(users_kifu)]
@@ -25,7 +25,7 @@ pub struct Gamer {
 pub struct Kifu {
     pub id: i32,
     pub data: String,
-    pub timestamp: Option<SystemTime>,
+    pub timestamp: Option<NaiveDateTime>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
     pub winner_id: Option<i32>,
@@ -39,7 +39,7 @@ pub struct Analysis {
     pub position: String,
     pub engine: String,
     pub option: String,
-    pub timestamp: SystemTime,
+    pub timestamp: NaiveDateTime,
     pub score: String,
     pub pv: String,
     pub info: Option<String>,
@@ -82,7 +82,7 @@ pub struct NewGamer<'a> {
 #[table_name="kifu"]
 pub struct NewKifu<'a> {
     pub data: &'a str,
-    pub timestamp: Option<SystemTime>,
+    pub timestamp: Option<NaiveDateTime>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
     pub winner_id: Option<i32>,

@@ -2,12 +2,13 @@ use std::io::Read;
 use std::error::Error;
 use std::str;
 
-use regex::bytes::Regex;
+use regex::{Regex, bytes};
 
 use hyper::{self, Client, Url};
 use hyper::net::HttpsConnector;
 use hyper::client::IntoUrl;
 use hyper_native_tls::NativeTlsClient;
+use chrono::prelude::*;
 
 fn read_https(url: Url) -> Result<Vec<u8>, Box<Error>> {
     let tls = NativeTlsClient::new()?;
@@ -39,7 +40,7 @@ pub fn shougiwars_game_url(game: &str) -> Result<Url, Box<Error>> {
 pub fn scrape_shougiwars_history(s: &[u8]) -> Result<Vec<String>, Box<Error>> {
     let mut games = Vec::new();
 
-    let re = Regex::new(r#"//kif-pona.heroz.jp/games/([^?"]*)"#).unwrap();
+    let re = bytes::Regex::new(r#"//kif-pona.heroz.jp/games/([^?"]*)"#).unwrap();
 
     for cap in re.captures_iter(s) {
         games.push(str::from_utf8(&cap[1])?.to_string());
@@ -48,7 +49,7 @@ pub fn scrape_shougiwars_history(s: &[u8]) -> Result<Vec<String>, Box<Error>> {
 }
 
 pub fn scrape_shougiwars_game(s: &[u8]) -> Result<String, Box<Error>> {
-    let re = Regex::new(r#"receiveMove\("([^"]*)"\)"#).unwrap();
+    let re = bytes::Regex::new(r#"receiveMove\("([^"]*)"\)"#).unwrap();
 
     for cap in re.captures_iter(s) {
         return Ok(str::from_utf8(&cap[1])?.to_string());
@@ -74,10 +75,31 @@ pub fn get_shougiwars_game(game: &str) -> Result<String, Box<Error>> {
     scrape_shougiwars_game(&data)
 }
 
+#[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
+pub struct ShougiwarsGame {
+    pub black: String,
+    pub white: String,
+    pub timestamp: NaiveDateTime,
+}
+
+pub fn get_shougiwars_info(game: &str) -> Result<ShougiwarsGame, Box<Error>> {
+    let re = Regex::new(r#"^([^-]*)-([^-]*)-(.*)$"#).unwrap();
+
+    let caps = re.captures(game).ok_or("Regex failed".to_string())?;
+
+    let date = NaiveDateTime::parse_from_str(&caps[3], "%Y%m%d_%H%M%S")?;
+
+    Ok(ShougiwarsGame {
+        black: caps[1].to_string(),
+        white: caps[2].to_string(),
+        timestamp: date,
+    })
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::File;
 
     #[test]
     fn it_works() {
@@ -112,5 +134,15 @@ mod tests {
                     L405\t-4647TO,L433\t+3847GI,L395\t-9949RY,L426\t+1716FU,L390\t-6639UM,\
                     L423\t+2818OU,L376\t-0017KY,L418\t+2917KE,L373\t-0028KI,\
                     L417\tGOTE_WIN_CHECKMATE");
+        //let date = NaiveDateTime::parse_from_rfc3339("2017-03-24T11:11:57+09:00").unwrap();
+        let date = NaiveDateTime::parse_from_str("2017-03-24T11:11:57+09:00",
+                                                 "%Y-%m-%dT%H:%M:%S%z")
+            .unwrap();
+        assert_eq!(get_shougiwars_info("Rettosei-sunaemon0-20170324_111157").unwrap(),
+                   ShougiwarsGame {
+                       black: "Rettosei".to_string(),
+                       white: "sunaemon0".to_string(),
+                       timestamp: date,
+                   });
     }
 }

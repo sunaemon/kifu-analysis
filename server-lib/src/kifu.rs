@@ -154,8 +154,11 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let game = iexpect!(router_ext.find("game"));
 
-    let d = database_lib::Database::new();
+    let game_info = scraping::get_shougiwars_info(game).map_err(make_it_ironerror)?;
     let uid = format!("shougiwars:{}", game);
+    let d = database_lib::Database::new();
+    let black = d.create_or_find_gamer(&game_info.black, "shougiwars").map_err(make_it_ironerror)?;
+    let white = d.create_or_find_gamer(&game_info.white, "shougiwars").map_err(make_it_ironerror)?;
 
     let k = {
         if let Some(k) = d.find_kifu_from_uid(&uid).map_err(make_it_ironerror)? {
@@ -166,7 +169,26 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
             let kifu_data = scraping::get_shougiwars_game(game).map_err(make_it_ironerror)?;
             let g = parser::shougiwars::parse(kifu_data.as_bytes()).map_err(make_it_ironerror)?;
             let data = &json::encode(&g).map_err(make_it_ironerror)?;
-            d.create_kifu(data, None, None, None, None, Some(&uid))
+            let winner = match g.issue {
+                Some(i) => {
+                    match i {
+                        IssueOfGame::Win(c, _) => {
+                            match c {
+                                Color::Black => Some(&black),
+                                Color::White => Some(&white),
+                            }
+                        }
+                        _ => None,
+                    }
+                }
+                None => None,
+            };
+            d.create_kifu(data,
+                             Some(&black),
+                             Some(&white),
+                             winner,
+                             Some(game_info.timestamp),
+                             Some(&uid))
                 .map_err(make_it_ironerror)?
         }
     };
