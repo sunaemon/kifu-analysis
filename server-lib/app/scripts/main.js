@@ -276,6 +276,15 @@ $(document).ready(function() {
             event.preventDefault();
         });
     } else if (new RegExp('https?://[^/]*/kifu/([^/]*)/?$').test(url)) {
+        $('#tab a[href="#local"]').click(e => {
+            e.preventDefault();
+            $(this).tab('add');
+        });
+        $('#tab a[href="#add"]').click(e => {
+            e.preventDefault();
+            $(this).tab('add');
+        });
+
         populate_board($('#kifu_id').text());
     } else if (new RegExp('https?://[^/]*/kifu/shougiwars/game/([^/]*)/?$').test(url)) {
         populate_board($('#kifu_id').text());

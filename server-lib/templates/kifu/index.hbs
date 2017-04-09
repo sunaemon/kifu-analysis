@@ -1,28 +1,62 @@
 {{#*inline "page"}}
-<table class="table">
-  <thead>
-    <tr>
-      <th>id</th>
-      <th>black</th>
-      <th>white</th>
-      <th>winner</th>
-    </tr>
-  </thead>
-  <tbody>
-{{#each kifu}}
-    <tr>
-      <td><a href="{{this.url}}">{{this.id}}</a></td>
-      <td>{{this.black}}</td>
-      <td>{{this.white}}</td>
-      <td>{{this.winner}}</td>
-    </tr>
-{{/each}}
-  </tbody>
-</table>
-<form id="shougiwars_search">
-  <input id="shougiwars_usename" type="text">
-  <button type="submit">search</button>
-</form>
+<ul class="nav nav-tabs" id="tab">
+  <li class="nav-item">
+    <a class="nav-link active" data-toggle="tab" href="#local">local</a>
+  </li>
+  {{#each shougiwars_tab}}
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" href="#shougiwars_{{this.name}}">{{this.name}}</a>
+    </li>
+  {{/each}}
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" href="#add">+</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane active" id="local" role="tabpanel">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>black</th>
+          <th>white</th>
+          <th>winner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each kifu}}
+          <tr>
+            <td><a href="{{this.url}}">{{this.id}}</a></td>
+            <td>{{this.black}}</td>
+            <td>{{this.white}}</td>
+            <td>{{this.winner}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <div class="tab-pane active" id="shougiwars" role="tabpanel">
+    <table class="table" id="shougiwars_games">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>black</th>
+          <th>white</th>
+          <th>winner</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <div class="tab-pane" id="add" role="tabpanel">
+    <form id="shougiwars_search">
+      将棋ウォーズから棋譜を検索:<input id="shougiwars_usename" type="text">
+      <button type="submit">search</button>
+    </form>
+  </div>
+</div>
 {{/inline}}
 
 {{~> layout title="kifu" ~}}
