@@ -143,14 +143,20 @@ $(document).ready(function() {
         let n_start;
         let k_start;
         let k_pos = new Date();
+        let click_sound_loaded = false;
         $(window).on('touchstart', function(e) {
             x_start = e.changedTouches[0].pageX;
             y_start = e.changedTouches[0].pageY;
             n_start = n;
             k_start = k;
+            if (!click_sound_loaded) {
+                loadSound(click_sound);
+                click_sound_loaded = true;
+            }
         });
         $(window).on('touchmove', function(e) {
             let updated = false;
+
             if (k === 0 && new Date() - k_pos > 20) {
                 const old_n = n;
                 const new_n = n_start + Math.floor((y_start - e.changedTouches[0].pageY) / 10);
@@ -158,6 +164,7 @@ $(document).ready(function() {
 
                 if (old_n !== n) {
                     updated = true;
+                    playSound(click_sound);
                     x_start = e.changedTouches[0].pageX;
                 }
             } else {
@@ -172,6 +179,7 @@ $(document).ready(function() {
             }
 
             if (old_k !== k) {
+                playSound(click_sound);
                 updated = true;
             }
 
@@ -187,6 +195,8 @@ $(document).ready(function() {
                 return;
             }
             k += 1;
+
+            playSound(click_sound);
             update_board();
         }
         function prev() {
@@ -194,6 +204,7 @@ $(document).ready(function() {
                 return;
             }
             k -= 1;
+            playSound(click_sound);
             update_board();
         }
         function down() {
@@ -202,6 +213,7 @@ $(document).ready(function() {
             }
             n += 1;
             k = 0;
+            playSound(click_sound);
             update_board();
         }
         function up() {
@@ -210,6 +222,7 @@ $(document).ready(function() {
             }
             n -= 1;
             k = 0;
+            playSound(click_sound);
             update_board();
         }
         $('#next_button').click(next);
@@ -289,4 +302,38 @@ $(document).ready(function() {
     } else if (new RegExp('https?://[^/]*/kifu/shougiwars/game/([^/]*)/?$').test(url)) {
         populate_board($('#kifu_id').text());
     }
+
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    const context = new AudioContext();
+    let click_sound;
+
+
+    const req = new XMLHttpRequest();
+    req.responseType = 'arraybuffer';
+
+    req.onload = function() {
+        context.decodeAudioData(req.response, buffer => {
+            click_sound = buffer;
+        });
+    };
+
+    req.open('GET', '/app/click.ogg', true);
+    req.send();
+
+    const loadSound = function(buffer) {
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        const gainNode = context.createGain();
+        gainNode.gain.value = 0;
+        source.connect(gainNode);
+        gainNode.connect(context.destination);
+        source.start(0);
+    };
+
+    const playSound = function(buffer) {
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.start(0);
+    };
 });
