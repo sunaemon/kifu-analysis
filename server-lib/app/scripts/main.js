@@ -150,7 +150,7 @@ $(document).ready(function() {
             n_start = n;
             k_start = k;
             if (!click_sound_loaded) {
-                loadSound(click_sound);
+                playSound(click_sound, 0);
                 click_sound_loaded = true;
             }
         });
@@ -317,23 +317,17 @@ $(document).ready(function() {
         });
     };
 
-    req.open('GET', '/app/click.ogg', true);
+    req.open('GET', '/app/click.mp3', true);
     req.send();
 
-    const loadSound = function(buffer) {
+    const playSound = function(buffer, gain) {
+        gain = gain || 0.1;
         const source = context.createBufferSource();
         source.buffer = buffer;
         const gainNode = context.createGain();
-        gainNode.gain.value = 0;
+        gainNode.gain.value = gain;
         source.connect(gainNode);
         gainNode.connect(context.destination);
-        source.start(0);
-    };
-
-    const playSound = function(buffer) {
-        const source = context.createBufferSource();
-        source.buffer = buffer;
-        source.connect(context.destination);
         source.start(0);
     };
 });
