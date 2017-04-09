@@ -144,14 +144,18 @@ $(document).ready(function() {
         let k_start;
         let k_pos = new Date();
         let click_sound_loaded = false;
-        $(window).on('touchstart', function(e) {
+        $(window).on('touchstart', e => {
             x_start = e.changedTouches[0].pageX;
             y_start = e.changedTouches[0].pageY;
             n_start = n;
             k_start = k;
             if (!click_sound_loaded) {
-                playSound(click_sound, 0);
+                playSound(click_sound, 0.001);
                 click_sound_loaded = true;
+            }
+
+            if (e.touches.length > 1) {
+                e.preventDefault();
             }
         });
         $(window).on('touchmove', function(e) {
@@ -160,7 +164,7 @@ $(document).ready(function() {
             if (k === 0 && new Date() - k_pos > 20) {
                 const old_n = n;
                 const new_n = n_start + Math.floor((y_start - e.changedTouches[0].pageY) / 10);
-                n = Math.min(Math.max(new_n, 0), kifu.length);
+                n = Math.min(Math.max(new_n, 0), kifu.length - 1);
 
                 if (old_n !== n) {
                     updated = true;
@@ -175,7 +179,7 @@ $(document).ready(function() {
             const old_k = k;
             const new_k = k_start + Math.floor((x_start - e.changedTouches[0].pageX) / 10);
             if (kifu[n].pv) {
-                k = Math.min(Math.max(new_k, 0), kifu[n].pv.length);
+                k = Math.min(Math.max(new_k, 0), kifu[n].pv.length - 1);
             }
 
             if (old_k !== k) {
@@ -189,6 +193,16 @@ $(document).ready(function() {
                 update_board();
             }
         });
+
+        let lastTouchEnd = 0;
+        $(window).on('touchend', event => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
 
         function next() {
             if (!(kifu[n].pv && kifu[n].pv[k + 1])) {
@@ -229,21 +243,26 @@ $(document).ready(function() {
         $('#prev_button').click(prev);
         $('#down_button').click(down);
         $('#up_button').click(up);
-        $(document).keypress(function(e) {
+        const handler = e  => {
             e = e || window.event;
-            if (e.keyCode === 37) {
+            let code = e.keyCode;
+            if (e.charCode && code === 0)
+                code = e.charCode;
+
+            if (code === 37) {
                 prev();
-            } else if (e.keyCode === 38) {
+            } else if (code === 38) {
                 up();
-            } else if (e.keyCode === 39) {
+            } else if (code === 39) {
                 next();
-            } else if (e.keyCode === 40) {
+            } else if (code === 40) {
                 down();
             } else {
                 return;
             }
             e.preventDefault();
-        });
+        };
+        $(document).keydown(handler);
 
         let kifu = null;
         $.get(`/kifu/show_moves/${kifu_id}`, function(d) {
@@ -314,14 +333,15 @@ $(document).ready(function() {
     req.onload = function() {
         context.decodeAudioData(req.response, buffer => {
             click_sound = buffer;
-        });
+        }, e => console.log(e));
     };
 
     req.open('GET', '/app/click.mp3', true);
+    //req.open('GET', '/app/click.ogg', true);
     req.send();
 
     const playSound = function(buffer, gain) {
-        gain = gain || 0.1;
+        gain = gain || 0.8;
         const source = context.createBufferSource();
         source.buffer = buffer;
         const gainNode = context.createGain();
