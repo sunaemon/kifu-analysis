@@ -1,4 +1,3 @@
-$(document).ready(function() {
     function populate_board(kifu_id) {
         function get_image_name(cp) {
             const piece_to_num = {
@@ -26,7 +25,8 @@ $(document).ready(function() {
             }
 
             const [color, piece] = cp;
-            return `sgl${`0${cp_to_img(color, piece)}`.slice(-2)}`;
+            const num = `0${cp_to_img(color, piece)}`.slice(-2);
+            return `sgl${num}`;
         }
 
         let board_init = false;
@@ -90,7 +90,7 @@ $(document).ready(function() {
                 }
 
                 if (ki && ki.pv) {
-                    const make_templ = function(k) {
+                    const make_templ = k => {
                         let template = '';
 
                         const init = Math.max(k - 1, 1);
@@ -151,7 +151,7 @@ $(document).ready(function() {
                 e.preventDefault();
             }
         });
-        $(window).on('touchmove', function(e) {
+        $(window).on('touchmove', e => {
             let updated = false;
 
             if (k === 0 && new Date() - k_pos > 20) {
@@ -268,15 +268,15 @@ $(document).ready(function() {
 
         const websocket_url = $('#websocket_url').text();
         const connection = new WebSocket(websocket_url);
-        connection.onopen = function() {
+        connection.onopen = () => {
             console.log('connection opened');
             connection.send(kifu_id);
         };
-        connection.onerror = function(error) {
+        connection.onerror = error => {
             console.log(`WebSocket Error ${error}`);
         };
-        connection.onmessage = function(e) {
-            const data = JSON.parse(e.data);
+        connection.onmessage = event => {
+            const data = JSON.parse(event.data);
             const nn = data[0];
 
             let value = data[1].score.fields[0];
@@ -323,7 +323,7 @@ $(document).ready(function() {
     const req = new XMLHttpRequest();
     req.responseType = 'arraybuffer';
 
-    req.onload = function() {
+    req.onload = () => {
         context.decodeAudioData(req.response, buffer => {
             click_sound = buffer;
         }, e => console.log(e));
@@ -333,7 +333,7 @@ $(document).ready(function() {
     //req.open('GET', '/app/click.ogg', true);
     req.send();
 
-    const playSound = function(buffer, gain) {
+    const playSound = (buffer, gain) => {
         gain = gain || 0.8;
         const source = context.createBufferSource();
         source.buffer = buffer;
@@ -343,4 +343,3 @@ $(document).ready(function() {
         gainNode.connect(context.destination);
         source.start(0);
     };
-});

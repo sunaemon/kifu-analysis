@@ -1,10 +1,14 @@
 const gulp = require('gulp');
 const sass = require('gulp-sass');
-//const autoprefixer = require('gulp-autoprefixer');
+const gulpif = require('gulp-if');
+const autoprefixer = require('gulp-autoprefixer');
 const spritesmith = require('gulp.spritesmith');
-//const cleanCSS = require('gulp-clean-css');
+const cleanCSS = require('gulp-clean-css');
 const browserify = require('gulp-browserify');
+const uglify = require('gulp-uglify');
+const babel = require('gulp-babel');
 const yargs = require('yargs').argv;
+const pump = require('pump');
 
 gulp.task('sprite', () => {
     const spriteData = gulp.src(['app/images/*.jpg', 'app/images/**/*.png']).pipe(spritesmith({
@@ -23,18 +27,20 @@ gulp.task('scss', () => {
             includePaths:
             ['bower_components/bootstrap/scss/', 'bower_components/font-awesome/scss/']
         }))
-        //.pipe(autoprefixer())
-        //.pipe(cleanCSS())
+        .pipe(autoprefixer())
+        .pipe(gulpif(yargs.production, cleanCSS()))
         .pipe(gulp.dest('dist/'));
 });
 
-gulp.task('js', () => {
-    gulp.src(['app/scripts/*.js'])
-                       .pipe(browserify({
-                           inserteGlobals: true,
-                           debug: !yargs.production
-                       }))
-  .pipe(gulp.dest('dist/'));
+gulp.task('js', cb => {
+    pump([gulp.src(['app/scripts/*.js']),
+        babel(),
+        browserify({
+            inserteGlobals: true,
+            debug: !yargs.production
+        }),
+        gulpif(yargs.production, uglify()),
+        gulp.dest('dist/')], cb);
 });
 
 gulp.task('default', ['sprite', 'scss', 'js']);
