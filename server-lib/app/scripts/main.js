@@ -30,14 +30,7 @@ $(document).ready(function() {
         }
 
         let board_init = false;
-        let sprite = null;
-        $.get('/dist/sprite.json', function(d) {
-            sprite = d;
-            if (!board_init && kifu) {
-                update_board();
-                board_init = true;
-            }
-        });
+        const sprite = require('../spritesmith-generated/sprite.json');
 
         let n = 0;
         let k = 0;
