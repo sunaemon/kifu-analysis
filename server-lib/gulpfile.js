@@ -1,8 +1,8 @@
 const gulp = require('gulp');
 const sass = require('gulp-sass');
-const autoprefixer = require('gulp-autoprefixer');
+//const autoprefixer = require('gulp-autoprefixer');
 const spritesmith = require('gulp.spritesmith');
-const cleanCSS = require('gulp-clean-css');
+//const cleanCSS = require('gulp-clean-css');
 const browserify = require('gulp-browserify');
 const yargs = require('yargs').argv;
 
@@ -23,8 +23,8 @@ gulp.task('scss', () => {
             includePaths:
             ['bower_components/bootstrap/scss/', 'bower_components/font-awesome/scss/']
         }))
-        .pipe(autoprefixer())
-        .pipe(cleanCSS())
+        //.pipe(autoprefixer())
+        //.pipe(cleanCSS())
         .pipe(gulp.dest('dist/'));
 });
 
