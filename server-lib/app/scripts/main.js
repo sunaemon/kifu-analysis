@@ -1,3 +1,4 @@
+$(document).ready(() => {
     function populate_board(kifu_id) {
         function get_image_name(cp) {
             const piece_to_num = {
@@ -329,8 +330,8 @@
         }, e => console.log(e));
     };
 
-    req.open('GET', '/app/click.mp3', true);
-    //req.open('GET', '/app/click.ogg', true);
+    //req.open('GET', '/app/click.mp3', true);
+    req.open('GET', '/app/click.ogg', true);
     req.send();
 
     const playSound = (buffer, gain) => {
@@ -343,3 +344,4 @@
         gainNode.connect(context.destination);
         source.start(0);
     };
+});
