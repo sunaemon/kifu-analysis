@@ -302,11 +302,11 @@ $(document).ready(() => {
             event.preventDefault();
         });
     } else if (new RegExp('https?://[^/]*/kifu/([^/]*)/?$').test(url)) {
-        $('#tab a[href="#local"]').click(e => {
+        $('#tab a[href="#local"]').click(function(e) {
             e.preventDefault();
             $(this).tab('add');
         });
-        $('#tab a[href="#add"]').click(e => {
+        $('#tab a[href="#add"]').click(function(e) {
             e.preventDefault();
             $(this).tab('add');
         });
