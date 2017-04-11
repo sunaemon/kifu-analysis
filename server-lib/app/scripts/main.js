@@ -31,7 +31,7 @@ $(document).ready(() => {
         }
 
         let board_init = false;
-        const sprite = require('../spritesmith-generated/sprite.json');
+        const sprite = require('../spritesmith-generated/sprite.json').frames;
 
         let n = 0;
         let k = 0;
@@ -117,15 +117,16 @@ $(document).ready(() => {
                 }
             }
 
+            console.log(sprite);
             const ctx = $('#board')[0].getContext('2d');
-            ctx.drawImage(stripe_img[0], sprite.board.x, sprite.board.y, sprite.board.width, sprite.board.height, 0, 0, sprite.board.width, sprite.board.height);
+            ctx.drawImage(stripe_img[0], sprite.board.frame.x, sprite.board.frame.y, sprite.board.frame.w, sprite.board.frame.h, 0, 0, sprite.board.frame.w, sprite.board.frame.h);
 
             for (let j = 0; j < 9; j++) {
                 for (let i = 0; i < 9; i++) {
                     const cp = board[j][8 - i];
                     if (cp) {
                         const name = get_image_name(cp);
-                        ctx.drawImage(stripe_img[0], sprite[name].x, sprite[name].y, sprite[name].width, sprite[name].height, 30 + 60 * i, 30 + 64 * j, sprite[name].width, sprite[name].height);
+                        ctx.drawImage(stripe_img[0], sprite[name].frame.x, sprite[name].frame.y, sprite[name].frame.w, sprite[name].frame.h, 30 + 60 * i, 30 + 64 * j, sprite[name].frame.w, sprite[name].frame.h);
                     }
                 }
             }
