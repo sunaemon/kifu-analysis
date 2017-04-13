@@ -30,36 +30,17 @@ pub struct KifuRoute;
 impl KifuRoute {
     pub fn new(router: &mut Router) -> KifuRoute {
         let prefix = "/kifu";
+        router.get(format!("{}/", prefix), render_index, "kifu_render_index");
         router.get(format!("{}/:id", prefix), show, "kifu_show");
         router.get(format!("{}/own/:id", prefix), own, "kifu_own");
-        router.get(format!("{}/new", prefix), render_new, "kifu_render_new");
-        router.get(format!("{}/", prefix), render_index, "kifu_render_index");
         router.get(format!("{}/shougiwars/history/:user", prefix),
                    render_shougiwars_history,
                    "kifu_render_shougiwars_history");
         router.get(format!("{}/shougiwars/game/:game", prefix),
                    render_shougiwars_game,
                    "kifu_render_shougiwars_game");
-        router.get(format!("{}/show_moves/:id", prefix),
-                   show_moves,
-                   "kifu_get_move");
         KifuRoute
     }
-}
-
-fn show(req: &mut Request) -> IronResult<Response> {
-    let router_ext = iexpect!(req.extensions.get::<Router>());
-    let id = iexpect!(router_ext.find("id"));
-    let id = i32::from_str(id).map_err(make_it_ironerror)?;
-    use rustc_serialize::json::{ToJson, Object};
-    let mut data = Object::new();
-
-    data.insert("kifu".to_string(), id.to_json());
-    data.insert("websocket_url".to_string(), (*WEBSOCKET_URL).to_json());
-
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/show", data)).set_mut(status::Ok);
-    Ok(resp)
 }
 
 fn own(req: &mut Request) -> IronResult<Response> {
@@ -76,25 +57,16 @@ fn own(req: &mut Request) -> IronResult<Response> {
                        Redirect(url_for!(req, "kifu_show", "id" => id.to_string())))))
 }
 
-fn render_new(_req: &mut Request) -> IronResult<Response> {
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/new", ())).set_mut(status::Ok);
-    Ok(resp)
-}
-
 fn render_index(req: &mut Request) -> IronResult<Response> {
     use rustc_serialize::json::{ToJson, Object, Array};
 
     let mut d = database_lib::Database::new();
     let u = users::login_user(&mut d, req).map_err(make_it_ironerror)?;
 
-    let mut data = Object::new();
     let mut kifu_data = Array::new();
 
     for kifu in d.list_kifu(&u).map_err(make_it_ironerror)? {
         let mut k = Object::new();
-        let url = url_for!(req, "kifu_show", "id" => kifu.id.to_string());
-        k.insert("url".to_string(), url.to_string().to_json());
         k.insert("id".to_string(), kifu.id.to_json());
 
         fn id_to_gamer(d: &mut database_lib::Database,
@@ -107,7 +79,6 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
             }
         }
 
-
         // TODO: fix 3n+1 problen
         let black = id_to_gamer(&mut d, kifu.black_id).map_err(make_it_ironerror)?;
         k.insert("black".to_string(), black.to_json());
@@ -119,11 +90,12 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
         kifu_data.push(k.to_json());
     }
 
-    data.insert("kifu".to_string(), kifu_data.to_json());
-
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/index", data)).set_mut(status::Ok);
+    let mut resp = Response::with((status::Ok, json::encode(&kifu_data).unwrap()));
+    resp.headers.set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
     Ok(resp)
+
 }
 
 fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
@@ -153,7 +125,7 @@ fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-fn show_moves(req: &mut Request) -> IronResult<Response> {
+fn show(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let id = iexpect!(router_ext.find("id"));
     let id = i32::from_str(id).map_err(make_it_ironerror)?;

@@ -11,6 +11,8 @@ module.exports = [{
     },
     module: {
         loaders: [
+            { test: /\.vue$/,
+              loader: 'vue-loader' },
             { test: /\.styl$/, loaders: [
                 'style-loader',
                 'css-loader',
@@ -22,7 +24,10 @@ module.exports = [{
         ]
     },
     resolve: {
-        modules: ['node_modules', 'spritesmith-generated']
+        modules: ['node_modules', 'spritesmith-generated'],
+        alias: {
+            vue$: 'vue/dist/vue.esm.js'
+        }
     },
     plugins: [
         new SpritesmithPlugin({

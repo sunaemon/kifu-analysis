@@ -8,6 +8,7 @@ extends:
 parserOptions:
   ecmaVersion: 2017
   impliedStrict: true
+  sourceType: "module"
 rules:
   no-extra-parens:
     - warn
