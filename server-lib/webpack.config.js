@@ -4,7 +4,7 @@ const SpritesmithPlugin = require('webpack-spritesmith');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = [{
-    entry: './app/scripts/main.js',
+    entry: './app/main.js',
     output: {
         filename: 'main.js',
         path: path.resolve(__dirname, 'dist')

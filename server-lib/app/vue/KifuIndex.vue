@@ -21,11 +21,11 @@
 
 <script>
 module.exports = {
-    props: {
-        kifu: {
-          type: Array,
-          default: () => []
-        }
-    },
+  props: {
+    kifu: {
+      type: Array,
+      default: () => []
+    }
+  }
 }
 </script>

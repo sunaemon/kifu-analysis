@@ -1,5 +1,5 @@
-import Kifu from './Kifu.vue';
-import KifuIndex from './KifuIndex.vue';
+import Kifu from './vue/Kifu.vue';
+import KifuIndex from './vue/KifuIndex.vue';
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import axios from 'axios';
@@ -15,7 +15,7 @@ const Show = {
         };
 
         axios.get(`/kifu/${this.$route.params.id}`).then(res => {
-          console.log(res.data);
+            console.log(res.data);
             data.kifu = res.data;
         });
 
@@ -86,7 +86,7 @@ $(document).ready(() => {
         }
 
         let board_init = false;
-        const sprite = require('../spritesmith-generated/sprite.json').frames;
+        const sprite = require('./spritesmith-generated/sprite.json').frames;
 
         let n = 0;
         let k = 0;
