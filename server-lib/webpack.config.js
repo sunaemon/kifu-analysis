@@ -12,7 +12,7 @@ module.exports = [{
     module: {
         loaders: [
             { test: /\.vue$/,
-              loader: 'vue-loader' },
+                loader: 'vue-loader' },
             { test: /\.styl$/, loaders: [
                 'style-loader',
                 'css-loader',

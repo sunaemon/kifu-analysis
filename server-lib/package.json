@@ -6,7 +6,7 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "lint": "eslint --fix app/scripts/*.js app/scripts/vue/*.vue"
+    "lint": "eslint --fix app/main.js app/vue/*.vue"
   },
   "devDependencies": {
     "autoprefixer-loader": "^3.2.0",
