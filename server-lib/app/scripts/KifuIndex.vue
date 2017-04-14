@@ -9,8 +9,8 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for"item in kifu">
-        <td><a :href="item.url">{{item.id}}</a></td>
+      <tr v-for="item in kifu">
+        <td><router-link :to="`/kifu/${item.id}`">{{item.id}}</router-link></td>
         <td>{{item.black}}</td>
         <td>{{item.white}}</td>
         <td>{{item.winner}}</td>
@@ -21,11 +21,11 @@
 
 <script>
 module.exports = {
-  props: {
-    kifu: {
-      type: Array,
-      default: () => []
-    }
-  },
+    props: {
+        kifu: {
+          type: Array,
+          default: () => []
+        }
+    },
 }
 </script>
