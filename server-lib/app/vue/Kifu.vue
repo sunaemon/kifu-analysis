@@ -1,4 +1,4 @@
-t
+<template>
   <div>
     <div class="col-md-6">
       <board></board>
@@ -63,10 +63,15 @@ module.exports = {
   },
   created: function () {
     window.addEventListener('keypress', this.onKeypress)
-
+    window.addEventListener('touchstart', this.onTouchstart)
+    window.addEventListener('touchmove', this.onTouchmove)
+    window.addEventListener('touchend', this.onTouchend)
   },
   beforeDestroy: function () {
     window.removeEventListener('keypress', this.onKeypress)
+    window.removeEventListener('touchstart', this.onTouchstart)
+    window.removeEventListener('touchmove', this.onTouchmove)
+    window.removeEventListener('touchend', this.onTouchend)
   },
   props: {
     kifu: {
@@ -166,11 +171,14 @@ module.exports = {
       e.preventDefault()
     },
     onTouchend: function (event) {
+      event.preventDefault()
+      /*
       const now = (new Date()).getTime()
       if (now - this.lastTouchEnd <= 300) {
         event.preventDefault()
       }
       this.lastTouchEnd = now
+      */
     },
     onKeypress: function (event) {
       event = event || window.event
