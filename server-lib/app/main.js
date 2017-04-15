@@ -16,6 +16,30 @@ const Show = {
 
         axios.get(`/kifu/${this.$route.params.id}`).then(res => {
             data.kifu = res.data;
+
+            const connection = new WebSocket(WEBSOCKET_URL);
+            connection.onopen = () => {
+                console.log('connection opened');
+                connection.send(this.$route.params.id);
+            };
+            connection.onerror = error => {
+                console.log(`WebSocket Error ${error}`);
+            };
+            connection.onmessage = event => {
+                const jsonData = JSON.parse(event.data);
+                console.log(jsonData);
+                const nn = jsonData[0];
+
+                let value = jsonData[1].score.fields[0];
+                const type = jsonData[1].score.variant;
+                if (nn % 2) {
+                    value = -value;
+                }
+
+                data.kifu[nn].value = value;
+                data.kifu[nn].type = type;
+                data.kifu[nn].pv = jsonData[1].moves;
+            };
         });
 
         return data;

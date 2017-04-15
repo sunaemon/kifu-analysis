@@ -1,15 +1,15 @@
 <template>
   <div>
     <div class="col-md-6">
-      <board></board>
+      <board :data="currentBoard"></board>
     </div>
     <div class="col-md-6">
       <table style="font-size:80%;" class="table-bordered">
         <tbody>
           <tr v-for="i in [-2, -1, 0, 1, 2]">
-            <td :text-content.prop="move(i)"></td>
+            <td :class="i == 0 && k == 0 ? 'move-selected': ''" :text-content.prop="move(i)"></td>
             <td :text-content.prop="score(i)"></td>
-            <td :text-content.prop="pv(i)"></td>
+            <td v-html="pv(i)"></td>
           </tr>
         </tbody>
         <tfoot>
@@ -28,12 +28,10 @@
 </template>
 
 <script>
-const axios = require('axios');
-
 module.exports = {
   data: function () {
     window.AudioContext = window.AudioContext || window.webkitAudioContext
-    let data = {
+    return {
       n: 0,
       k: 0,
       clickSoundLoaded: false,
@@ -46,26 +44,26 @@ module.exports = {
       clickSound: null,
       lastTouchEnd: new Date()
     }
-    const req = new XMLHttpRequest()
-    req.responseType = 'arraybuffer'
-
-    req.onload = () => {
-      data.audioContext.decodeAudioData(req.response, buffer => {
-        data.clickSound = buffer
-      }, e => console.log(e))
-    }
-
-    // req.open('GET', '/app/click.mp3', true);
-    req.open('GET', '/app/click.ogg', true)
-    req.send()
-
-    return data;
   },
   created: function () {
     window.addEventListener('keypress', this.onKeypress)
     window.addEventListener('touchstart', this.onTouchstart)
     window.addEventListener('touchmove', this.onTouchmove)
     window.addEventListener('touchend', this.onTouchend)
+
+    const req = new XMLHttpRequest()
+    req.responseType = 'arraybuffer'
+
+    req.onload = () => {
+      this.audioContext.decodeAudioData(req.response, buffer => {
+        console.log(buffer);
+        this.clickSound = buffer
+      }, e => console.log(e))
+    }
+
+    req.open('GET', '/app/click.mp3', true)
+    // req.open('GET', '/app/click.ogg', true)
+    req.send()
   },
   beforeDestroy: function () {
     window.removeEventListener('keypress', this.onKeypress)
@@ -81,6 +79,27 @@ module.exports = {
   components: {
     board: require('./Board.vue')
   },
+  computed: {
+    currentBoard: function () {
+      if (!this.kifu[this.n]) {
+        return [
+      [['White', 'Lance'], ['White', 'Knight'], ['White', 'Silver'], ['White', 'Gold'], ['White', 'King'], ['White', 'Gold'], ['White', 'Silver'], ['White', 'Knight'], ['White', 'Lance']],
+      [null, ['White', 'Bishop'], null, null, null, null, null, ['White', 'Rook'], null],
+      [['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn'], ['White', 'Pawn']],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn'], ['Black', 'Pawn']],
+      [null, ['Black', 'Rook'], null, null, null, null, null, ['Black', 'Bishop'], null],
+      [['Black', 'Lance'], ['Black', 'Knight'], ['Black', 'Silver'], ['Black', 'Gold'], ['Black', 'King'], ['Black', 'Gold'], ['Black', 'Silver'], ['Black', 'Knight'], ['Black', 'Lance']]
+        ]
+      } else if (this.k === 0) {
+        return this.kifu[this.n].position.board.inner
+      } else {
+        return this.kifu[this.n].pv[this.k].position.board.inner
+      }
+    }
+  },
   methods: {
     move: function (i) {
       const ki = this.kifu[this.n + i]
@@ -94,7 +113,7 @@ module.exports = {
     score: function (i) {
       const ki = this.kifu[this.n + i]
 
-      if (ki && ki.score) {
+      if (ki && ki.value) {
         return `${ki.type} ${ki.value}`
       } else {
         return '-----'
@@ -144,6 +163,8 @@ module.exports = {
       }
     },
     onTouchmove: function (e) {
+      e.preventDefault()
+
       if (this.k === 0 && new Date() - this.kPos > 20) {
         const oldn = this.n
         const tmp = this.nStart + Math.floor((this.yStart - e.changedTouches[0].pageY) / 10)
@@ -167,8 +188,6 @@ module.exports = {
       if (oldk !== this.k) {
         this.playSound(this.clickSound)
       }
-
-      e.preventDefault()
     },
     onTouchend: function (event) {
       event.preventDefault()
@@ -203,12 +222,14 @@ module.exports = {
         return
       }
       this.k += 1
+      this.playSound(this.clickSound)
     },
     prev: function () {
       if (this.k < 1) {
         return
       }
       this.k -= 1
+      this.playSound(this.clickSound)
     },
     down: function () {
       if (!this.kifu[this.n + 1]) {
@@ -216,6 +237,7 @@ module.exports = {
       }
       this.n += 1
       this.k = 0
+      this.playSound(this.clickSound)
     },
     up: function () {
       if (this.n < 1) {
@@ -223,15 +245,16 @@ module.exports = {
       }
       this.n -= 1
       this.k = 0
+      this.playSound(this.clickSound)
     },
     playSound: function (buffer, gain) {
       gain = gain || 0.8
-      const source = this.context.createBufferSource()
+      const source = this.audioContext.createBufferSource()
       source.buffer = buffer
-      const gainNode = this.context.createGain()
+      const gainNode = this.audioContext.createGain()
       gainNode.gain.value = gain
       source.connect(gainNode)
-      gainNode.connect(this.context.destination)
+      gainNode.connect(this.audioContext.destination)
       source.start(0)
     }
   }

@@ -40,9 +40,7 @@ pub struct Analysis {
     pub engine: String,
     pub option: String,
     pub timestamp: NaiveDateTime,
-    pub score: String,
-    pub pv: String,
-    pub info: Option<String>,
+    pub infos: String,
 }
 
 #[derive(Queryable, Associations, Debug, Clone, PartialEq, Eq, Hash)]
@@ -99,8 +97,7 @@ pub struct NewAnalysis<'a> {
     pub engine: &'a str,
     pub option: &'a str,
     pub timestamp: NaiveDateTime,
-    pub score: &'a str,
-    pub pv: &'a str,
+    pub infos: &'a str,
 }
 
 #[derive(Insertable)]

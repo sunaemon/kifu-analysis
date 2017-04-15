@@ -2,6 +2,7 @@ const path = require('path');
 
 const SpritesmithPlugin = require('webpack-spritesmith');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = [{
     entry: './app/main.js',
@@ -45,6 +46,9 @@ module.exports = [{
             apiOptions: {
                 cssImageRef: '~sprite.png'
             }
+        }),
+        new webpack.DefinePlugin({
+            WEBSOCKET_URL: '"ws://192.168.1.40:3001"'
         })
     ]
 }, {

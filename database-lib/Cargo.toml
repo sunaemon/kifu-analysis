@@ -13,9 +13,14 @@ rust-crypto = "^0.2"
 dotenv = "*"
 lazy_static = "*"
 
+rustc-serialize = "^0.3.16"
+
 chrono = { version = "0.3", features = ["rustc-serialize"] }
 
 clippy = {version = "*", optional = true}
+
+[dependencies.core-lib]
+path = "../core-lib"
 
 [features]
 default = []

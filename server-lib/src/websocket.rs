@@ -81,6 +81,7 @@ impl Handler {
             let k = d.get_kifu(kifu_id).unwrap();
 
             let g = json::decode::<Game>(&k.data).unwrap();
+            let mut p = g.position.clone();
             let en = usi_engine::UsiEngine::new();
             let max_depth = 20;
 
@@ -88,16 +89,25 @@ impl Handler {
                 if *data.to_terminate.lock().unwrap() {
                     return;
                 }
+                let infos = {
+                    if let Ok(a) = d.find_analysis(&p) {
+                        json::decode::<usi_engine::UsiEngineInfo>(&a.infos).unwrap()
+                    } else {
+                        let infos = en.get_score(&g.position,
+                                                 &g.moves[0..n],
+                                                 max_depth as u64,
+                                                 Duration::from_secs(1));
 
-                let infos = en.get_score(&g.position,
-                                         &g.moves[0..n],
-                                         max_depth as u64,
-                                         Duration::from_secs(1));
+                        d.create_analysis(&p, &infos).unwrap();
+
+                        infos
+                    }
+                };
 
                 let dat_to_send = json::encode(&(n, infos)).unwrap();
-
-                debug!("{}", dat_to_send);
                 out.send(dat_to_send).unwrap();
+
+                p.make_move(&g.moves[n]).unwrap();
             }
         });
         Handler {

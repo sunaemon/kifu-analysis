@@ -8,6 +8,8 @@ extern crate rand;
 extern crate crypto;
 extern crate dotenv;
 extern crate chrono;
+extern crate core_lib;
+extern crate rustc_serialize;
 
 pub mod schema;
 pub mod models;
@@ -25,8 +27,15 @@ use crypto::sha2::Sha256;
 
 use chrono::prelude::*;
 
-use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer, UserKifu, NewUserKifu};
-use schema::{users, kifu, gamers, users_kifu};
+use rustc_serialize::json;
+
+use models::{User, NewUser, Kifu, NewKifu, Gamer, NewGamer, UserKifu, NewUserKifu, Analysis,
+             NewAnalysis};
+use schema::{users, kifu, gamers, users_kifu, analysis};
+
+use core_lib::types::Position;
+use core_lib::encoder;
+use core_lib::usi_engine::UsiEngineInfo;
 
 lazy_static! {
   static ref DATABASE_URL: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set").to_string();
@@ -283,6 +292,49 @@ impl Database {
                     message: e.description().to_string(),
                     cause: None,
                 })
+            }
+        }
+    }
+
+    pub fn find_analysis(&self, pos: &Position) -> Result<Analysis, DatabaseError> {
+        let aa = analysis::table.filter(analysis::engine.eq("Gikou"))
+            .filter(analysis::position.eq(encoder::usi::sfen(pos)))
+            .load::<Analysis>(&self.conn)?;
+        if aa.len() > 1 {
+            panic!("Unique validation goes wrong!! gamers: {:?}", aa);
+        }
+
+        if aa.len() == 1 {
+            Ok(aa[0].clone())
+        } else {
+            Err(DatabaseError {
+                message: "No such analysis".to_string(),
+                cause: None,
+            })
+        }
+    }
+
+    pub fn create_analysis(&self,
+                           pos: &Position,
+                           infos: &UsiEngineInfo)
+                           -> Result<Analysis, Box<Error>> {
+        let new_analysis = NewAnalysis {
+            position: &encoder::usi::sfen(pos),
+            engine: "Gikou",
+            option: "",
+            timestamp: Local::now().naive_local(),
+            infos: &json::encode(infos)?,
+        };
+
+        match diesel::insert(&new_analysis)
+            .into(analysis::table)
+            .get_result(&self.conn) {
+            Ok(gamer) => Ok(gamer),
+            Err(e) => {
+                Err(Box::<Error>::from(DatabaseError {
+                    message: e.description().to_string(),
+                    cause: None,
+                }))
             }
         }
     }

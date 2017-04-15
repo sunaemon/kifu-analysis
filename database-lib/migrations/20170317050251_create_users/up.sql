@@ -30,9 +30,7 @@ CREATE TABLE analysis (
   engine varchar not null,
   "option" varchar not null,
   timestamp timestamp without time zone not null,
-  score varchar not null,
-  pv varchar not null,
-  info varchar
+  infos varchar not null
 );
 
 CREATE TABLE kifu_position (
