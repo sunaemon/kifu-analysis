@@ -1,4 +1,3 @@
-use std::env;
 use std::str::FromStr;
 use std::error::Error;
 
@@ -10,7 +9,6 @@ use iron::modifiers::Redirect;
 use router::Router;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::header::ContentType;
-use handlebars_iron::Template;
 
 use core_lib::parser;
 use core_lib::encoder;
@@ -21,24 +19,20 @@ use super::scraping;
 use super::users;
 use super::error::make_it_ironerror;
 
-lazy_static! {
-  static ref WEBSOCKET_URL: String = env::var("WEBSOCKET_URL").expect("WEBSOCKET_URL must be set").to_string();
-}
-
 pub struct KifuRoute;
 
 impl KifuRoute {
     pub fn new(router: &mut Router) -> KifuRoute {
         let prefix = "/kifu";
-        router.get(format!("{}/", prefix), render_index, "kifu_render_index");
+        router.get(format!("{}/", prefix), index, "kifu_index");
         router.get(format!("{}/:id", prefix), show, "kifu_show");
         router.get(format!("{}/own/:id", prefix), own, "kifu_own");
         router.get(format!("{}/shougiwars/history/:user", prefix),
-                   render_shougiwars_history,
-                   "kifu_render_shougiwars_history");
+                   shougiwars_history,
+                   "kifu_shougiwars_history");
         router.get(format!("{}/shougiwars/game/:game", prefix),
-                   render_shougiwars_game,
-                   "kifu_render_shougiwars_game");
+                   shougiwars_game,
+                   "kifu_shougiwars_game");
         KifuRoute
     }
 }
@@ -57,7 +51,7 @@ fn own(req: &mut Request) -> IronResult<Response> {
                        Redirect(url_for!(req, "kifu_show", "id" => id.to_string())))))
 }
 
-fn render_index(req: &mut Request) -> IronResult<Response> {
+fn index(req: &mut Request) -> IronResult<Response> {
     use rustc_serialize::json::{ToJson, Object, Array};
 
     let mut d = database_lib::Database::new();
@@ -98,31 +92,35 @@ fn render_index(req: &mut Request) -> IronResult<Response> {
 
 }
 
-fn render_shougiwars_history(req: &mut Request) -> IronResult<Response> {
+fn shougiwars_history(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let user = router_ext.find("user")
         .ok_or("parameter user not found".to_string())
         .map_err(make_it_ironerror)?;
 
     use rustc_serialize::json::{ToJson, Object, Array};
-    let mut data = Object::new();
+    let mut kifu_data = Array::new();
 
     let game_names = scraping::get_shougiwars_history(&user, 0).map_err(make_it_ironerror)?;
-    let mut games: Array = Array::new();
     for game_name in game_names {
-        let mut game: Object = Object::new();
-        game.insert("name".to_string(), game_name.to_json());
-        let url = url_for!(req, "kifu_render_shougiwars_game", "game" => game_name);
-        game.insert("url".to_string(), url.to_string().to_json());
-        games.push(game.to_json());
+        let mut k = Object::new();
+
+        let game_info = scraping::get_shougiwars_info(&game_name).map_err(make_it_ironerror)?;
+
+        k.insert("name".to_string(), game_name.to_json());
+        k.insert("black".to_string(), game_info.black.to_json());
+        k.insert("white".to_string(), game_info.white.to_json());
+        k.insert("winner".to_string(), "".to_json());
+
+        kifu_data.push(k.to_json());
     }
-    data.insert("games".to_string(), games.to_json());
 
-    info!("{:?}", data);
-
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/shougiwars/history", data)).set_mut(status::Ok);
+    let mut resp = Response::with((status::Ok, json::encode(&kifu_data).unwrap()));
+    resp.headers.set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
     Ok(resp)
+
 }
 
 fn show(req: &mut Request) -> IronResult<Response> {
@@ -142,7 +140,7 @@ fn show(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
-fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
+fn shougiwars_game(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let game = iexpect!(router_ext.find("game"));
 
@@ -187,14 +185,12 @@ fn render_shougiwars_game(req: &mut Request) -> IronResult<Response> {
 
     use rustc_serialize::json::{ToJson, Object};
     let mut data = Object::new();
-    data.insert("kifu".to_string(), k.id.to_json());
-    data.insert("websocket_url".to_string(), (*WEBSOCKET_URL).to_json());
-    data.insert("import_url".to_string(),
-                url_for!(req, "kifu_own", "id" => k.id.to_string())
-                    .to_string()
-                    .to_json());
+    data.insert("id".to_string(), k.id.to_json());
 
-    let mut resp = Response::new();
-    resp.set_mut(Template::new("kifu/shougiwars/game", data)).set_mut(status::Ok);
+    let mut resp = Response::with((status::Ok, json::encode(&data).unwrap()));
+    resp.headers.set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
     Ok(resp)
+
 }

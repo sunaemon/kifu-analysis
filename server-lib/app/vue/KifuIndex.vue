@@ -10,7 +10,7 @@
     </thead>
     <tbody>
       <tr v-for="item in kifu">
-        <td><router-link :to="`/kifu/${item.id}`">{{item.id}}</router-link></td>
+        <td><a v-on:click.prevent="item.on_click">{{item.name}}</a></td>
         <td>{{item.black}}</td>
         <td>{{item.white}}</td>
         <td>{{item.winner}}</td>

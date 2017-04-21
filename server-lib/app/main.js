@@ -60,6 +60,11 @@ const Index = {
         };
 
         axios.get('/kifu/').then(res => {
+            res.data.forEach(g => {
+                g.on_click = router.push(`/kifu/${g.id}`);
+                g.name = g.id;
+            });
+
             data.kifu = res.data;
         });
 
@@ -67,12 +72,42 @@ const Index = {
     }
 };
 
+const ShougiWarsIndex = {
+    template: '<kifu-index :kifu="kifu"></kifu-index>',
+    components: {
+        'kifu-index': KifuIndex
+    },
+    data: function() {
+        const data = {
+            kifu: []
+        };
+
+        axios.get(`/kifu/shougiwars/history/${this.$route.params.id}`).then(res => {
+            res.data.forEach(g => {
+                g.on_click = () => {
+                    axios.get(`/kifu/shougiwars/game/${g.name}`).then(res => {
+                        console.log(res);
+                        router.push(`/kifu/${res.data.id}`);
+                    });
+                };
+            });
+            data.kifu = res.data;
+        });
+
+        return data;
+    }
+};
+
+const router = new VueRouter({
+    routes: [
+    { path: '/kifu/', component: Index },
+    { path: '/kifu/shougiwars/:id', component: ShougiWarsIndex },
+    { path: '/kifu/:id', component: Show }
+    ]
+});
+
+
 new Vue({
-    router: new VueRouter({
-        routes: [
-        { path: '/kifu/', component: Index },
-        { path: '/kifu/:id', component: Show }
-        ]
-    })
+    router: router
 }).$mount('#app');
 
