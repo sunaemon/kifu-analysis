@@ -7,15 +7,19 @@
 
     <link rel="stylesheet" href="/dist/main.css">
 
-    <title>{{title}}</title>
+    <title>kifu analysis</title>
   </head>
     <img src="/dist/sprite.png" id="sprite" hidden>
 
     <div class="container-fluid">
       <div id="app">
         <ul class="nav nav-tabs">
-          <li><router-link to="/kifu/">local</router-link></li>
-          <li><router-link to="/kifu/shougiwars/sunaemon0">sunaemon0</router-link></li>
+          <li class="nav-item">
+             <router-link to="/kifu/" class="nav-link active">local</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/kifu/shougiwars/sunaemon0" class="nav-link">sunaemon0</router-link>
+          </li>
         </ul>
         <router-view></router-view>
       </div>
