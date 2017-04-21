@@ -90,7 +90,7 @@ impl Handler {
                     return;
                 }
                 let infos = {
-                    if let Ok(a) = d.find_analysis(&p) {
+                    if let Some(a) = d.find_analysis(&p).unwrap() {
                         json::decode::<usi_engine::UsiEngineInfo>(&a.infos).unwrap()
                     } else {
                         let infos = en.get_score(&g.position,

@@ -18,6 +18,7 @@ use database_lib;
 use super::scraping;
 use super::users;
 use super::error::make_it_ironerror;
+use urlencoded::UrlEncodedBody;
 
 pub struct KifuRoute;
 
@@ -26,7 +27,7 @@ impl KifuRoute {
         let prefix = "/kifu";
         router.get(format!("{}/", prefix), index, "kifu_index");
         router.get(format!("{}/:id", prefix), show, "kifu_show");
-        router.get(format!("{}/own/:id", prefix), own, "kifu_own");
+        router.post(format!("{}/fav/:id", prefix), fav, "kifu_fav");
         router.get(format!("{}/shougiwars/history/:user", prefix),
                    shougiwars_history,
                    "kifu_shougiwars_history");
@@ -37,16 +38,21 @@ impl KifuRoute {
     }
 }
 
-fn own(req: &mut Request) -> IronResult<Response> {
+fn fav(req: &mut Request) -> IronResult<Response> {
     let id = {
         let router_ext = iexpect!(req.extensions.get::<Router>());
         let id = iexpect!(router_ext.find("id"));
         i32::from_str(id).map_err(make_it_ironerror)?
     };
+
+    let fav = {
+        let formdata = itry!(req.get_ref::<UrlEncodedBody>());
+        formdata.get("fav").is_some()
+    };
     let mut d = database_lib::Database::new();
     let u = users::login_user(&mut d, req).map_err(make_it_ironerror)?;
     let k = d.get_kifu(id).unwrap();
-    d.own_kifu(&u, &k).unwrap();
+    d.fav_kifu(&u, &k, fav).unwrap();
     Ok(Response::with((status::Found,
                        Redirect(url_for!(req, "kifu_show", "id" => id.to_string())))))
 }
@@ -89,7 +95,6 @@ fn index(req: &mut Request) -> IronResult<Response> {
                                       SubLevel::Json,
                                       vec![(Attr::Charset, Value::Utf8)])));
     Ok(resp)
-
 }
 
 fn shougiwars_history(req: &mut Request) -> IronResult<Response> {

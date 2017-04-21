@@ -1,4 +1,3 @@
-// diesel crates
 #[macro_use]
 extern crate diesel;
 #[macro_use]
@@ -14,6 +13,7 @@ extern crate rustc_serialize;
 pub mod schema;
 pub mod models;
 
+use std::convert::From;
 use std::error::Error;
 use std::env;
 use std::fmt;
@@ -48,7 +48,7 @@ pub struct Database {
 #[derive(Debug)]
 pub struct DatabaseError {
     message: String,
-    cause: Option<Box<Error>>,
+    cause: Option<Box<Error + Send>>,
 }
 
 impl fmt::Display for DatabaseError {
@@ -71,6 +71,7 @@ impl From<diesel::result::Error> for DatabaseError {
         }
     }
 }
+
 impl From<std::io::Error> for DatabaseError {
     fn from(data: std::io::Error) -> DatabaseError {
         DatabaseError {
@@ -103,8 +104,8 @@ impl Database {
             active: true,
         };
 
-        Ok(diesel::insert(&new_user).into(users::table)
-            .get_result(&self.conn)?)
+        let u = diesel::insert(&new_user).into(users::table).get_result(&self.conn)?;
+        Ok(u)
     }
 
     pub fn assume_user(&self, email: &str, password: &str) -> Result<(), DatabaseError> {
@@ -125,69 +126,45 @@ impl Database {
     }
 
     pub fn get_user(&self, email: &str) -> Result<User, DatabaseError> {
-        let us = users::table.filter(users::email.eq(email))
-            .load::<User>(&self.conn)?;
+        let u = users::table.filter(users::email.eq(email)).first::<User>(&self.conn)?;
 
-        if us.len() == 0 {
-            return Err(DatabaseError {
-                message: "No such user".to_string(),
-                cause: None,
-            });
-        } else if us.len() > 1 {
-            panic!("Unique validation goes wrong!! users: {:?}", us);
-        }
-
-        Ok(us[0].clone())
+        Ok(u)
     }
 
     pub fn get_kifu(&self, id: i32) -> Result<Kifu, DatabaseError> {
-        let ks = kifu::table.filter(kifu::id.eq(id))
-            .load::<Kifu>(&self.conn)?;
+        let k = kifu::table.find(id).first(&self.conn)?;
 
-        if ks.len() == 0 {
-            return Err(DatabaseError {
-                message: "No such kifu".to_string(),
-                cause: None,
-            });
-        } else if ks.len() > 1 {
-            panic!("Unique validation goes wrong!! users: {:?}", ks);
-        }
-
-        Ok(ks[0].clone())
+        Ok(k)
     }
 
-    pub fn own_kifu(&self, user: &User, kifu: &Kifu) -> Result<(), DatabaseError> {
-        let uks = users_kifu::table.filter(users_kifu::user_id.eq(user.id))
+    pub fn fav_kifu(&self, user: &User, kifu: &Kifu, fav: bool) -> Result<(), DatabaseError> {
+        if fav {
+            let new_user_kifu = NewUserKifu {
+                user_id: user.id,
+                kifu_id: kifu.id,
+            };
+
+            diesel::insert(&new_user_kifu).into(users_kifu::table)
+                .get_result::<UserKifu>(&self.conn)?;
+        } else {
+            diesel::delete(users_kifu::table.filter(users_kifu::user_id.eq(user.id))
+                    .filter(users_kifu::kifu_id.eq(kifu.id))).execute(&self.conn)?;
+        }
+        Ok(())
+    }
+
+    pub fn get_fav_kifu(&self, user: &User, kifu: &Kifu) -> Result<bool, DatabaseError> {
+        let k = users_kifu::table.filter(users_kifu::user_id.eq(user.id))
             .filter(users_kifu::kifu_id.eq(kifu.id))
-            .load::<UserKifu>(&self.conn)?;
-        if uks.len() > 1 {
-            panic!("Unique validation goes wrong!! users_kifu: {:?}", uks);
-        } else if uks.len() == 1 {
-            return Ok(());
-        }
-
-        let new_user_kifu = NewUserKifu {
-            user_id: user.id,
-            kifu_id: kifu.id,
-        };
-
-        match diesel::insert(&new_user_kifu)
-            .into(users_kifu::table)
-            .get_result::<UserKifu>(&self.conn) {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                Err(DatabaseError {
-                    message: e.description().to_string(),
-                    cause: None,
-                })
-            }
-        }
+            .get_result::<UserKifu>(&self.conn)
+            .optional()?;
+        Ok(k.is_some())
     }
 
     pub fn list_kifu(&self, user: &User) -> Result<Vec<Kifu>, DatabaseError> {
-        let us: Vec<(Kifu, UserKifu)> = kifu::table.inner_join(users_kifu::table)
+        let us = kifu::table.inner_join(users_kifu::table)
             .filter(users_kifu::user_id.eq(user.id))
-            .load(&self.conn)?;
+            .load::<(Kifu, UserKifu)>(&self.conn)?;
         let mut ks = Vec::new();
         for (k, _) in us {
             ks.push(k);
@@ -201,64 +178,36 @@ impl Database {
             service: service,
         };
 
-        match diesel::insert(&new_gamer)
-            .into(gamers::table)
-            .get_result(&self.conn) {
-            Ok(gamer) => Ok(gamer),
-            Err(e) => {
-                Err(DatabaseError {
-                    message: e.description().to_string(),
-                    cause: None,
-                })
-            }
-        }
+        let gamer = diesel::insert(&new_gamer).into(gamers::table)
+            .get_result(&self.conn)?;
+        Ok(gamer)
     }
 
     pub fn find_gamer(&self, id: i32) -> Result<Gamer, DatabaseError> {
-        let gs = gamers::table.filter(gamers::id.eq(id))
-            .load::<Gamer>(&self.conn)?;
-        if gs.len() > 1 {
-            panic!("Unique validation goes wrong!! gamers: {:?}", gs);
-        }
+        let g = gamers::table.find(id).first(&self.conn)?;
 
-        if gs.len() == 1 {
-            Ok(gs[0].clone())
-        } else {
-            Err(DatabaseError {
-                message: "No such gamer".to_string(),
-                cause: None,
-            })
-        }
+        Ok(g)
     }
 
     pub fn create_or_find_gamer(&self, name: &str, service: &str) -> Result<Gamer, DatabaseError> {
-        let gs = gamers::table.filter(gamers::name.eq(name))
+        let gamer = gamers::table.filter(gamers::name.eq(name))
             .filter(gamers::service.eq(service))
-            .load::<Gamer>(&self.conn)?;
-        if gs.len() > 1 {
-            panic!("Unique validation goes wrong!! gamers: {:?}", gs);
-        }
+            .get_result::<Gamer>(&self.conn)
+            .optional()?;
 
-        if gs.len() == 1 {
-            Ok(gs[0].clone())
+        if let Some(gamer) = gamer {
+            Ok(gamer)
         } else {
             self.create_gamer(name, service)
         }
     }
 
     pub fn find_kifu_from_uid(&self, original_uid: &str) -> Result<Option<Kifu>, DatabaseError> {
-        let ks = kifu::table.filter(kifu::original_uid.eq(original_uid))
-            .load::<Kifu>(&self.conn)?;
+        let k = kifu::table.filter(kifu::original_uid.eq(original_uid))
+            .get_result::<Kifu>(&self.conn)
+            .optional()?;
 
-        if ks.len() > 1 {
-            panic!("Unique validation goes wrong!! kifu: {:?}", ks);
-        }
-
-        if ks.len() == 1 {
-            Ok(Some(ks[0].clone()))
-        } else {
-            Ok(None)
-        }
+        Ok(k)
     }
 
     pub fn create_kifu(&self,
@@ -296,22 +245,13 @@ impl Database {
         }
     }
 
-    pub fn find_analysis(&self, pos: &Position) -> Result<Analysis, DatabaseError> {
-        let aa = analysis::table.filter(analysis::engine.eq("Gikou"))
+    pub fn find_analysis(&self, pos: &Position) -> Result<Option<Analysis>, DatabaseError> {
+        let a = analysis::table.filter(analysis::engine.eq("Gikou"))
             .filter(analysis::position.eq(encoder::usi::sfen(pos)))
-            .load::<Analysis>(&self.conn)?;
-        if aa.len() > 1 {
-            panic!("Unique validation goes wrong!! gamers: {:?}", aa);
-        }
+            .get_result::<Analysis>(&self.conn)
+            .optional()?;
 
-        if aa.len() == 1 {
-            Ok(aa[0].clone())
-        } else {
-            Err(DatabaseError {
-                message: "No such analysis".to_string(),
-                cause: None,
-            })
-        }
+        Ok(a)
     }
 
     pub fn create_analysis(&self,
@@ -326,17 +266,8 @@ impl Database {
             infos: &json::encode(infos)?,
         };
 
-        match diesel::insert(&new_analysis)
-            .into(analysis::table)
-            .get_result(&self.conn) {
-            Ok(gamer) => Ok(gamer),
-            Err(e) => {
-                Err(Box::<Error>::from(DatabaseError {
-                    message: e.description().to_string(),
-                    cause: None,
-                }))
-            }
-        }
+        Ok(diesel::insert(&new_analysis).into(analysis::table)
+            .get_result(&self.conn)?)
     }
 }
 
@@ -365,9 +296,9 @@ mod tests {
     fn it_works() {
         let d = DATABASE.lock().unwrap();
         setup_conn_and_populate(&d);
-        assert!(d.verify_user("hoge@sample.com", "hoge").is_ok());
-        assert!(d.verify_user("fuga@sample.com", "hoge").is_err());
-        assert!(d.verify_user("hoge@sample.com", "fuga").is_err());
+        assert!(d.assume_user("hoge@sample.com", "hoge").is_ok());
+        assert!(d.assume_user("fuga@sample.com", "hoge").is_err());
+        assert!(d.assume_user("hoge@sample.com", "fuga").is_err());
     }
 
     #[test]
@@ -377,10 +308,12 @@ mod tests {
         match d.create_user("hoge@sample.com", "hoge") {
             Ok(_) => panic!(),
             Err(e) => {
+                /*
                 match e.downcast::<diesel::result::Error>().unwrap() {
                     box diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _) => (),
                     _ => panic!(),
                 }
+                */
             }
         }
     }
