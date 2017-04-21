@@ -36,9 +36,9 @@ const Show = {
                     value = -value;
                 }
 
-                data.kifu[nn].value = value;
-                data.kifu[nn].type = type;
-                data.kifu[nn].pv = jsonData[1].moves;
+                Vue.set(data.kifu[nn], 'value', value);
+                Vue.set(data.kifu[nn], 'type', type);
+                Vue.set(data.kifu[nn], 'pv', jsonData[1].moves);
             };
         });
 
