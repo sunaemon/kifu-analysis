@@ -138,7 +138,7 @@ impl Database {
     }
 
     pub fn fav_kifu(&self, user: &User, kifu: &Kifu, fav: bool) -> Result<(), DatabaseError> {
-        if fav {
+        if fav && !self.get_fav_kifu(user, kifu)? {
             let new_user_kifu = NewUserKifu {
                 user_id: user.id,
                 kifu_id: kifu.id,

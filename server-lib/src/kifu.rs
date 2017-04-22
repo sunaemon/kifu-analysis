@@ -137,10 +137,10 @@ fn shougiwars_history(req: &mut Request) -> IronResult<Response> {
 fn show(req: &mut Request) -> IronResult<Response> {
     let router_ext = iexpect!(req.extensions.get::<Router>());
     let id = iexpect!(router_ext.find("id"));
-    let id = i32::from_str(id).map_err(make_it_ironerror)?;
+    let id = itry!(i32::from_str(id));
 
     let d = database_lib::Database::new();
-    let k = d.get_kifu(id).map_err(make_it_ironerror)?;
+    let k = itry!(d.get_kifu(id));
     let g = json::decode::<Game>(&k.data).unwrap();
     let moves = encoder::get_moves(&g).map_err(make_it_ironerror)?;
 
@@ -158,11 +158,11 @@ fn shougiwars_game(req: &mut Request) -> IronResult<Response> {
     let game_info = scraping::get_shougiwars_info(game).map_err(make_it_ironerror)?;
     let uid = format!("shougiwars:{}", game);
     let d = database_lib::Database::new();
-    let black = d.create_or_find_gamer(&game_info.black, "shougiwars").map_err(make_it_ironerror)?;
-    let white = d.create_or_find_gamer(&game_info.white, "shougiwars").map_err(make_it_ironerror)?;
+    let black = itry!(d.create_or_find_gamer(&game_info.black, "shougiwars"));
+    let white = itry!(d.create_or_find_gamer(&game_info.white, "shougiwars"));
 
     let k = {
-        if let Some(k) = d.find_kifu_from_uid(&uid).map_err(make_it_ironerror)? {
+        if let Some(k) = itry!(d.find_kifu_from_uid(&uid)) {
             info!("i know {}", uid);
             k
         } else {
@@ -184,13 +184,12 @@ fn shougiwars_game(req: &mut Request) -> IronResult<Response> {
                 }
                 None => None,
             };
-            d.create_kifu(data,
-                             Some(&black),
-                             Some(&white),
-                             winner,
-                             Some(game_info.timestamp),
-                             Some(&uid))
-                .map_err(make_it_ironerror)?
+            itry!(d.create_kifu(data,
+                                Some(&black),
+                                Some(&white),
+                                winner,
+                                Some(game_info.timestamp),
+                                Some(&uid)))
         }
     };
 
