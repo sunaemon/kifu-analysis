@@ -107,7 +107,9 @@ impl Handler {
                 let dat_to_send = json::encode(&(n, infos)).unwrap();
                 out.send(dat_to_send).unwrap();
 
-                p.make_move(&g.moves[n]).unwrap();
+                if n != g.moves.len() {
+                    p.make_move(&g.moves[n]).unwrap();
+                }
             }
         });
         Handler {

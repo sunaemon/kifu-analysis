@@ -11,10 +11,9 @@ use handlebars_iron::Template;
 use iron_sessionstorage;
 use iron_sessionstorage::traits::*;
 
-use urlencoded::UrlEncodedBody;
-
 use database_lib;
 use url;
+use bodyparser;
 
 use super::error::make_it_ironerror;
 
@@ -97,16 +96,19 @@ fn render_login(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct EmailPassword {
+    pub email: String,
+    pub password: String,
+}
+
 fn signup(req: &mut Request) -> IronResult<Response> {
     {
-        let formdata = itry!(req.get_ref::<UrlEncodedBody>());
-
-        let email = iexpect!(formdata.get("email"))[0].to_owned();
-        let password = iexpect!(formdata.get("password"))[0].to_owned();
+        let formdata = iexpect!(itry!(req.get::<bodyparser::Struct<EmailPassword>>()));
 
         let d = database_lib::Database::new();
 
-        d.create_user(&email, &password).map_err(make_it_ironerror)?;
+        d.create_user(&formdata.email, &formdata.password).map_err(make_it_ironerror)?;
     }
 
     let root = root(&req.url).map_err(make_it_ironerror)?;
@@ -115,16 +117,13 @@ fn signup(req: &mut Request) -> IronResult<Response> {
 
 fn login(req: &mut Request) -> IronResult<Response> {
     let email = {
-        let formdata = itry!(req.get_ref::<UrlEncodedBody>());
-
-        let email = iexpect!(formdata.get("email"))[0].to_owned();
-        let password = iexpect!(formdata.get("password"))[0].to_owned();
+        let formdata = iexpect!(itry!(req.get::<bodyparser::Struct<EmailPassword>>()));
 
         let d = database_lib::Database::new();
 
-        d.assume_user(&email, &password).map_err(make_it_ironerror)?;
+        d.assume_user(&formdata.email, &formdata.password).map_err(make_it_ironerror)?;
 
-        email
+        formdata.email
     };
 
     req.session().set(Login { email: email })?;

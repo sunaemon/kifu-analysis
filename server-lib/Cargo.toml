@@ -16,7 +16,6 @@ iron = "^0.5.1"
 staticfile = "^0.4.0"
 mount = "^0.3.0"
 router = "^0.5.0"
-urlencoded = "^0.5.0"
 
 handlebars = "^0.25.0"
 handlebars-iron = "^0.23.0"
@@ -34,12 +33,19 @@ lazy_static = "*"
 
 clippy = {version = "*", optional = true}
 
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
 [features]
 default = []
 watch = ["handlebars-iron/watch"]
 
 [dependencies.logger]
 git = "https://github.com/iron/logger.git"
+
+[dependencies.bodyparser]
+git = "https://github.com/iron/body-parser.git"
 
 [dependencies.core-lib]
 path = "../core-lib"

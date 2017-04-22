@@ -18,8 +18,8 @@ use database_lib;
 use super::scraping;
 use super::users;
 use super::error::make_it_ironerror;
-use urlencoded::UrlEncodedBody;
 
+use bodyparser;
 pub struct KifuRoute;
 
 impl KifuRoute {
@@ -38,6 +38,11 @@ impl KifuRoute {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Fav {
+    pub fav: bool,
+}
+
 fn fav(req: &mut Request) -> IronResult<Response> {
     let id = {
         let router_ext = iexpect!(req.extensions.get::<Router>());
@@ -46,9 +51,10 @@ fn fav(req: &mut Request) -> IronResult<Response> {
     };
 
     let fav = {
-        let formdata = itry!(req.get_ref::<UrlEncodedBody>());
-        formdata.get("fav").is_some()
+        let formdata = iexpect!(itry!(req.get::<bodyparser::Struct<Fav>>()));
+        formdata.fav
     };
+    info!("fav {} {}", id, fav);
     let mut d = database_lib::Database::new();
     let u = users::login_user(&mut d, req).map_err(make_it_ironerror)?;
     let k = d.get_kifu(id).unwrap();

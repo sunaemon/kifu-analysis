@@ -8,7 +8,7 @@ Vue.use(VueRouter);
 
 const Show = {
     name: 'show',
-    template: '<kifu :kifu="kifu"></kifu>',
+    template: '<div><kifu :kifu="kifu"></kifu><button v-on:click="fav" class="btn">fav</button></div>',
     data: function() {
         const data = {
             kifu: []
@@ -27,7 +27,6 @@ const Show = {
             };
             connection.onmessage = event => {
                 const jsonData = JSON.parse(event.data);
-                console.log(jsonData);
                 const nn = jsonData[0];
 
                 let value = jsonData[1].score.fields[0];
@@ -43,6 +42,11 @@ const Show = {
         });
 
         return data;
+    },
+    methods: {
+        fav: function() {
+            axios.post(`/kifu/fav/${this.$route.params.id}`, { fav: true }).then(() => {});
+        }
     },
     components: {
         kifu: Kifu
@@ -61,7 +65,9 @@ const Index = {
 
         axios.get('/kifu/').then(res => {
             res.data.forEach(g => {
-                g.on_click = router.push(`/kifu/${g.id}`);
+                g.on_click = () => {
+                    router.push(`/kifu/${g.id}`);
+                };
                 g.name = g.id;
             });
 

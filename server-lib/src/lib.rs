@@ -26,7 +26,6 @@ extern crate handlebars;
 extern crate handlebars_iron;
 
 extern crate iron_sessionstorage;
-extern crate urlencoded;
 
 extern crate url;
 
@@ -34,6 +33,13 @@ extern crate rustc_serialize;
 
 extern crate core_lib;
 extern crate database_lib;
+extern crate bodyparser;
+
+#[macro_use]
+extern crate serde_derive;
+
+extern crate serde;
+extern crate serde_json;
 
 #[macro_use]
 mod error;
