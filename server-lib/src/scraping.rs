@@ -27,6 +27,24 @@ fn read_https(url: Url) -> Result<Vec<u8>, Box<Error>> {
     Ok(buf)
 }
 
+pub fn get_shougiwars_history(user: &str, start: u32) -> Result<Vec<String>, Box<Error>> {
+    let url = shougiwars_history_url(user, start)?;
+    info!("url: {}", url);
+    let data = read_https(url)?;
+    debug!("data: {:?}", data);
+
+    scrape_shougiwars_history(&data)
+}
+
+pub fn get_shougiwars_game(game: &str) -> Result<String, Box<Error>> {
+    let url = shougiwars_game_url(game)?;
+    info!("url: {}", url);
+    let data = read_https(url)?;
+    debug!("data: {:?}", data);
+
+    scrape_shougiwars_game(&data)
+}
+
 pub fn shougiwars_history_url(user: &str, start: u32) -> Result<Url, Box<Error>> {
     Ok(format!("http://shogiwars.heroz.jp/users/history/{}?start={}",
                user,
@@ -55,24 +73,6 @@ pub fn scrape_shougiwars_game(s: &[u8]) -> Result<String, Box<Error>> {
         return Ok(str::from_utf8(&cap[1])?.to_string());
     }
     Err("no match".to_string())?
-}
-
-pub fn get_shougiwars_history(user: &str, start: u32) -> Result<Vec<String>, Box<Error>> {
-    let url = shougiwars_history_url(user, start)?;
-    info!("url: {}", url);
-    let data = read_https(url)?;
-    debug!("data: {:?}", data);
-
-    scrape_shougiwars_history(&data)
-}
-
-pub fn get_shougiwars_game(game: &str) -> Result<String, Box<Error>> {
-    let url = shougiwars_game_url(game)?;
-    info!("url: {}", url);
-    let data = read_https(url)?;
-    debug!("data: {:?}", data);
-
-    scrape_shougiwars_game(&data)
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
