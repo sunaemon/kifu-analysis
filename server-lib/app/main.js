@@ -17,6 +17,7 @@ const Show = {
         axios.get(`/kifu/${this.$route.params.id}`).then(res => {
             data.kifu = res.data;
 
+            /* global WEBSOCKET_URL */ // see webpack.config.js
             const connection = new WebSocket(WEBSOCKET_URL);
             connection.onopen = () => {
                 console.log('connection opened');
@@ -111,9 +112,51 @@ const router = new VueRouter({
     { path: '/kifu/:id', component: Show }
     ]
 });
-
+//          <li class="nav-item">
+//             <router-link to="/kifu/" class="nav-link active">local</router-link>
+//          </li>
+//          <li class="nav-item">
+//            <router-link to="/kifu/shougiwars/sunaemon0" class="nav-link">sunaemon0</router-link>
+//          </li>
+//          <li class="nav-item">
+//            <router-link to="logoff" class="nav-link">login</router-link>
+//          </li>
+//        </ul>
+//        <router-view></router-view>
 
 new Vue({
-    router: router
+    template: '<div><ul class="nav nav-tabs"><li v-for="tab in tabs" :class="{ \'nav-item\': true, active: false }" v-if="tab.show"><a href v-on:click="tab.on_click">{{tab.caption}}</a></li></ul><router-view/><div v-if="login">login!!</div></div>',
+    router: router,
+    data: function() {
+        return {
+            login: false,
+            tabs: [
+                {
+                    caption: 'local',
+                    on_click: () => router.push('/kifu/'),
+                    maches: url => url === '/kifu/',
+                    show: true
+                },
+                {
+                    caption: 'sunaemon0',
+                    on_click: () => router.push('/kifu/shougiwars/sunaemon0'),
+                    maches: url => url === '/kifu/shougiwars/sunaemon0',
+                    show: true
+                },
+                {
+                    caption: 'logoff',
+                    on_click: () => axios.post('/usres/logoff').then(() => this.login = false),
+                    maches: () => false,
+                    show: true
+                },
+                {
+                    caption: 'login',
+                    on_click: () => axios.post('/usres/login', { email: 'a', password: 'a' }).then(() => this.login = true),
+                    maches: () => false,
+                    show: true
+                }
+            ]
+        };
+    }
 }).$mount('#app');
 
