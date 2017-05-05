@@ -17,7 +17,7 @@ CREATE TABLE gamers (
 CREATE TABLE kifu (
   id serial primary key,
   data varchar not null,
-  timestamp timestamp without time zone,
+  timestamp timestamp with time zone,
   black_id integer references gamers(id),
   white_id integer references gamers(id),
   winner_id integer references gamers(id),
@@ -29,7 +29,7 @@ CREATE TABLE analysis (
   position varchar not null,
   engine varchar not null,
   "option" varchar not null,
-  timestamp timestamp without time zone not null,
+  timestamp timestamp with time zone not null,
   infos varchar not null
 );
 

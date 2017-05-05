@@ -25,7 +25,7 @@ pub struct Gamer {
 pub struct Kifu {
     pub id: i32,
     pub data: String,
-    pub timestamp: Option<NaiveDateTime>,
+    pub timestamp: Option<DateTime<UTC>>,
     pub black_id: Option<i32>,
     pub white_id: Option<i32>,
     pub winner_id: Option<i32>,
@@ -39,7 +39,7 @@ pub struct Analysis {
     pub position: String,
     pub engine: String,
     pub option: String,
-    pub timestamp: NaiveDateTime,
+    pub timestamp: DateTime<UTC>,
     pub infos: String,
 }
 
